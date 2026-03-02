@@ -60,7 +60,6 @@ local function ForceApplyAppearance(ply, tbl, noModelChange)
     ply:SetSubMaterial()
 
     local mats = ply:GetMaterials()
-    --PrintTable(mats)
     if istable(tMdl) then
         for k, v in pairs(tMdl.submatSlots) do
             --print(k)
@@ -82,12 +81,6 @@ local function ForceApplyAppearance(ply, tbl, noModelChange)
 
     ply:SetNWString("PlayerName", tbl.AName)
     ply:SetBodyGroups( "00000000000000000000" )
-    --print(mdl)
-    --if mdl == "models/zcity/m/male_09.mdl" and ply:SteamID() == "STEAM_0:1:163575696" then
-    --    timer.Simple(0,function()
-    --    ply:SetBodygroup( 1,7 )
-    --    end)
-    --end
 
     local bodygroups = ply:GetBodyGroups()
     tbl.ABodygroups = tbl.ABodygroups or {}
@@ -105,7 +98,6 @@ local function ForceApplyAppearance(ply, tbl, noModelChange)
     end
 
     ply:SetNetVar("Accessories", tbl.AAttachments)
-
     ply.CurAppearance = {}
     table.CopyFromTo(tbl, ply.CurAppearance)
 end
@@ -172,11 +164,11 @@ end)
 APmodule.ApplyAppearance = ApplyAppearance
 
 -- Ragdoll apply
-function ApplyAppearanceRagdoll(ent, ply)
+function ApplyAppearanceRagdoll(ent,ply)
     local Appearance = ply.CurAppearance
     if !Appearance then return end
-    ent:SetNWString("PlayerName", ply:GetNWString("PlayerName", Appearance.AName))
-    ent:SetNetVar("Accessories", ply:GetNetVar("Accessories",""))
+    ent:SetNWString("PlayerName",ply:GetNWString("PlayerName",Appearance.AName))
+    ent:SetNetVar("Accessories",ply:GetNetVar("Accessories",""))
 
     local tMdl = APmodule.PlayerModels[1][ent:GetModel()] or APmodule.PlayerModels[2][ent:GetModel()] or ent:GetModel()
     if istable(tMdl) then

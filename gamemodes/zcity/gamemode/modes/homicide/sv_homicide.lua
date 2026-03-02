@@ -45,20 +45,45 @@ MODE.LootTable = {
 	}},
 	{20,{
 		{12,"weapon_hammer"},
+		{8,"weapon_screwdriver"},
 		{6,"weapon_brick"},
+		{6,"weapon_hg_cinderblock"},
 		{10,"weapon_pocketknife"},
+		{5,"weapon_kitchenknife"},
 
 		{4,"weapon_bat"},
+		{4,"weapon_batmetal"},
+		{4,"weapon_golfclub"},
 		{4,"weapon_leadpipe"},
 		{3,"weapon_hg_extinguisher"},
+		{3,"weapon_hg_wrench"},
+		{3,"weapon_hg_cuestick"},
 
 		{2,"weapon_hg_crowbar"},
+		{2,"weapon_hg_metalpot"},
+		{2,"weapon_hg_skateboard"},
+		{2,"weapon_bayonet"},
+		{2,"weapon_drill"},
 		{1,"weapon_hatchet"},
+		{1,"weapon_hatchethmcd"},
+		{1,"weapon_hg_fireaxe"},
+		{1,"weapon_hg_fubar"},
+		{1,"weapon_hg_pickaxe"},
+		{1,"weapon_hg_pitchfork"},
 		{0.9,"weapon_hg_axe"},
+		{1.5,"weapon_hg_cleaver"},
+		{1.5,"weapon_hg_crovel"},
+		{0.8,"weapon_hg_kukri"},
+		{0.8,"weapon_hg_taiga"},
 		{0.5,"weapon_hg_machete"},
+		{0.5,"weapon_hg_fiberwire"},
+		{0.5,"weapon_hg_razor"},
+		{0.5,"weapon_scalpel"},
 		{0.4,"weapon_hg_sledgehammer"},
+		{0.2,"weapon_ram"},
 
 		{0.2,"hg_brassknuckles"},
+		{0.1,"weapon_hg_chainsaw"},
 		{0.13,"weapon_hg_spear"},
 		{0.13, "weapon_hg_spear_pro"},
 	}},
@@ -141,18 +166,28 @@ MODE.LootTableStandard = {
 	}},
 	{35, {
 		{1,"weapon_hammer"},
+		{0.8,"weapon_screwdriver"},
 		{1,"weapon_brick"},
+		{0.5,"weapon_hg_cinderblock"},
 		{1,"weapon_pocketknife"},
+		{0.5,"weapon_kitchenknife"},
 		{0.32,"weapon_bat"},
+		{0.32,"weapon_batmetal"},
+		{0.32,"weapon_golfclub"},
 		{0.3,"weapon_leadpipe"},
 
 		{0.15,"weapon_hg_extinguisher"},
+		{0.2,"weapon_hg_wrench"},
 		{0.14,"weapon_hg_crowbar"},
+		{0.3,"weapon_hg_metalpot"},
+		{0.2,"weapon_hg_skateboard"},
+		{0.2,"weapon_hg_cuestick"},
 
 		{0.12,"weapon_hatchet"},
 		{0.10,"weapon_hg_axe"},
 		{0.09,"weapon_hg_sledgehammer"},
 		{0.07,"weapon_hg_machete"},
+		{0.1,"weapon_hg_crovel"},
 	}},
 }
 
@@ -214,6 +249,7 @@ MODE.TraitorWords = {
 	"pipe",
 	"axe",
 	"usp pistol",
+	"makarov",
 	"ar15 rifle",
 	"kar98k rifle",
 	"grenade",
@@ -268,8 +304,10 @@ MODE.Types.standard = {
 		ply:Give("weapon_traitor_poison3")
 		ply:Give("weapon_traitor_poison_consumable")
 		ply:Give("weapon_traitor_suit")
-		local wep = ply:Give("weapon_zoraki")
-		timer.Simple(1,function() wep:ApplyAmmoChanges(2) end)
+		local makarov = ply:Give("weapon_makarov")
+		if IsValid(makarov) then
+			ply:GiveAmmo(makarov:GetMaxClip1() * 1, makarov:GetPrimaryAmmoType(), true)
+		end
 
 		ply.organism.stamina.range = 220
 
@@ -479,8 +517,10 @@ MODE.Types.gunfreezone = {
 		ply:Give("weapon_traitor_poison_consumable")
 		ply:Give("weapon_traitor_suit")
 
-		local wep = ply:Give("weapon_zoraki")
-		timer.Simple(1,function() wep:ApplyAmmoChanges(2) end)
+		local makarov = ply:Give("weapon_makarov")
+		if IsValid(makarov) then
+			ply:GiveAmmo(makarov:GetMaxClip1() * 1, makarov:GetPrimaryAmmoType(), true)
+		end
 
 		ply.organism.stamina.range = 220
 

@@ -322,7 +322,7 @@ input_list.skull = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricoch
 		timer.Simple(0.1, function()
 			local rag = hg.GetCurrentCharacter(org.owner)
 
-			if IsValid(rag) and rag:IsRagdoll() then
+			if rag:IsRagdoll() then
 				local stype = hg.getRandomSpasm()
 				hg.applySpasm(rag, stype)
 				if rag.organism then rag.organism.spasm, rag.organism.spasmType = true, stype end
