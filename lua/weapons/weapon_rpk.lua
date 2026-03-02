@@ -111,19 +111,19 @@ function SWEP:ModelCreated(model)
 end
 
 function SWEP:ThinkAdd()
-	local owner = self:GetOwner()
-	if not IsValid(owner) then return end
+	-- local owner = self:GetOwner()
+	-- if not IsValid(owner) then return end
 
-	if CLIENT and self:IsResting() then
-		local wm = self:GetWM()
-		local bone = wm:LookupBone("bipod1")
-		local posa, anga = self:GetBipodPosAng()
-		wm:ManipulateBoneAngles(bone, Angle(anga[2] + 35, 0, -owner:EyeAngles()[3] - 90))
+	-- if CLIENT and self:IsResting() then
+	-- 	local wm = self:GetWM()
+	-- 	local bone = wm:LookupBone("bipod1")
+	-- 	local posa, anga = self:GetBipodPosAng()
+	-- 	wm:ManipulateBoneAngles(bone, Angle(anga[2] + 35, 0, -owner:EyeAngles()[3] - 90))
 
-		local bone = wm:LookupBone("bipod2")
-		local posa, anga = self:GetBipodPosAng()
-		wm:ManipulateBoneAngles(bone, Angle(anga[2] - 35, 0, -owner:EyeAngles()[3] - 90))
-	end
+	-- 	local bone = wm:LookupBone("bipod2")
+	-- 	local posa, anga = self:GetBipodPosAng()
+	-- 	wm:ManipulateBoneAngles(bone, Angle(anga[2] - 35, 0, -owner:EyeAngles()[3] - 90))
+	-- end
 end
 
 SWEP.ReloadHold = nil

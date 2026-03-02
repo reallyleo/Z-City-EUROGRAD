@@ -237,12 +237,12 @@ hg.Appearance.ClothesDesc = {
 }
 
 -- Facemaps
-hg.Appearance.FacemapsSlots = {}
+hg.Appearance.FacemapsSlots = hg.Appearance.FacemapsSlots or {}
 --["matname"] = {
 --     ["facemapname"] = "facemap-material"
 --     ["facemapname2"] = "facemap-material2"
 --}
-hg.Appearance.FacemapsModels = {}
+hg.Appearance.FacemapsModels = hg.Appearance.FacemapsModels or {}
 local function AddFacemap(matOverride, strName, matMaterial, model)
 	hg.Appearance.FacemapsSlots[matOverride] = hg.Appearance.FacemapsSlots[matOverride] or {}
 	local tbl = hg.Appearance.FacemapsSlots[matOverride]
@@ -371,7 +371,7 @@ hg.Appearance.Bodygroups = hg.Appearance.Bodygroups or {
 }
 
 --lua_run Player(682):PS_AddItem("Standard_BodyGroups_Wool fingerless")
-function AppAddBodygroup(strBodyGroup, strName, strStringID, bFemale, bPointShop, bDonateOnly, fCost, psModel, psBodygroups, psSubmats, psStrNameOveride)
+local function AppAddBodygroup(strBodyGroup, strName, strStringID, bFemale, bPointShop, bDonateOnly, fCost, psModel, psBodygroups, psSubmats, psStrNameOveride)
 	local pointShopID = "Standard_BodyGroups_" .. (psStrNameOveride or strName)
 	hg.Appearance.Bodygroups[strBodyGroup] = hg.Appearance.Bodygroups[strBodyGroup] or {}
 	hg.Appearance.Bodygroups[strBodyGroup][bFemale and 2 or 1] = hg.Appearance.Bodygroups[strBodyGroup][bFemale and 2 or 1] or {}
@@ -381,12 +381,8 @@ function AppAddBodygroup(strBodyGroup, strName, strStringID, bFemale, bPointShop
 		ID = pointShopID
 	}
 
-	if SERVER and PLUGIN and PLUGIN.CreateItem then
-		PLUGIN:CreateItem(pointShopID, string.NiceName(strName), psModel or "models/zcity/gloves/degloves.mdl", psBodygroups, 0, Vector(0, 0, 0), fCost, bDonateOnly, psSubmats or {})
-	end
+	PLUGIN:CreateItem(pointShopID, string.NiceName(strName), psModel or "models/zcity/gloves/degloves.mdl", psBodygroups, 0, Vector(0, 0, 0), fCost, bDonateOnly, psSubmats or {})
 end
-
-hg.Appearance.AppAddBodygroup = AppAddBodygroup
 
 local function AddBodygroupsFunc()
 	AppAddBodygroup("HANDS", "Gloves", "reggloves_FIN_M", false, true, true, 300, "models/zcity/gloves/degloves.mdl", 0)

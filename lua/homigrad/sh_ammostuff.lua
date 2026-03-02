@@ -2870,7 +2870,7 @@ local ammoents = {
 		Model = "models/zcity/ammo/ammo_1143x23_hydro.mdl"
 	},
 	["20mm"] = {
-		Icon = "decals/mat_jack_hmcd_nailhead",
+		Icon = "vgui/hud/musketballzcity",
 		Material = "models/props_c17/paper01",
 		Scale = 0.8,
 		Count = 4,

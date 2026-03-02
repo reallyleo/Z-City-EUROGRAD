@@ -707,7 +707,10 @@ hook.Add("PreDrawOpaqueRenderables", "renderblindnessflash", function()
 	
 	if !lply:Alive() and !IsValid(spect) then removeflash() return end
 	if !lply:Alive() and viewmode != 1 then removeflash() return end
+
 	local organism = lply:Alive() and lply.organism or (IsValid(spect) and spect.organism)
+	if not organism or isbool(organism) then return end
+
 	if !(organism.blindness or (amtflashed or 0) >= 0.8) then removeflash() return end
 	local blindness = ((organism.blindness and math.Round(organism.blindness) == 0) or amtflashed >= 0.8) and 0 or (organism.blindness)
 

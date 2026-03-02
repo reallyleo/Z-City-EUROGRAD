@@ -324,7 +324,7 @@ hook.Add("Org Think", "Main", function(owner, org, timeValue)
 	else
 		org.alive = false
 	end
-
+	
 	org.needotrub = false
 	org.needfake = false
 	if isPly then
@@ -352,8 +352,8 @@ hook.Add("Org Think", "Main", function(owner, org, timeValue)
 	--module.blood[3](owner,org,timeValue)--arteria
 	module.blood[2](owner, org, timeValue)
 
+	module.pain[2](owner, org, timeValue)
 	if isPly then
-		module.pain[2](owner, org, timeValue)
 		module.metabolism[2](owner, org, timeValue)
 		module.random_events[2](owner, org, timeValue)
 	end
@@ -514,6 +514,13 @@ hook.Add("Org Think", "Main", function(owner, org, timeValue)
 
 	org.otrub = org.needotrub
 	org.fake = org.needfake
+	
+	if org.needfake and owner:IsNPC() then
+		local dmgInfo = DamageInfo()
+		dmgInfo:SetDamage(10000)
+		dmgInfo:SetAttacker(owner)
+		owner:TakeDamageInfo(dmgInfo)
+	end
 
 	if owner:IsPlayer() and (org.healthRegen or 0) < CurTime() then
 		org.healthRegen = CurTime() + 30
@@ -559,6 +566,9 @@ hook.Add("Org Think", "Main", function(owner, org, timeValue)
 		if (org.sendPlyTime > time) and !just_went_uncon then return end
 		org.sendPlyTime = CurTime() + 1 + (not isPly and 2 or 0)
 		send_bareinfo(org)
+
+		org.owner:SetNetVar("wounds", org.wounds)
+		org.owner:SetNetVar("arterialwounds", org.arterialwounds)
 
 		if isPly and owner:Alive() then
 			send_organism(org, owner)
