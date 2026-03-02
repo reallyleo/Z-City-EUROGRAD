@@ -212,7 +212,7 @@ end
 
 --hg.organism.AmputateLimb(Entity(2).organism, "rarm")
 
-function hg.organism.AddWound(ent,tr,bone,dmgInfo,dmgPos,dmgBlood,inputHole, outputHole)
+function hg.organism.AddWound(ent, tr, bone, dmgInfo, dmgPos, dmgBlood, inputHole, outputHole)
 	local org = ent.organism
 	if org.superfighter then return end
 	
@@ -227,13 +227,13 @@ function hg.organism.AddWound(ent,tr,bone,dmgInfo,dmgPos,dmgBlood,inputHole, out
 			if not bonePos then return end
 
 			dmgPos = (i == 1 and inputHole[1] or outputHole[1]) or dmgPos
-
+			
 			if i == 2 and not outputHole[1] then continue end
 			if i == 1 and not outputHole[1] then dmgBlood = dmgBlood * 2 end
 
 			if dmgInfo:IsDamageType(DMG_BLAST) or dmgInfo:GetAttacker():IsNPC() or (ent:IsPlayer() and ent:InVehicle()) then dmgPos = bonePos end
 
-			local localPos, localAng = WorldToLocal(dmgPos + tr.HitNormal, (i == 1 and -1 or 1) * tr.Normal:Angle(), bonePos, boneAng)
+			local localPos, localAng = WorldToLocal(dmgPos + ((i == 1 and 1 or -1) * tr.HitNormal), (i == 1 and -1 or 1) * tr.Normal:Angle(), bonePos, boneAng)
 			if #org.wounds < 30 then
 				table.insert(org.wounds,{dmgBlood / 2, localPos, localAng, ent:GetBoneName(bone), CurTime()})
 			else
@@ -241,7 +241,7 @@ function hg.organism.AddWound(ent,tr,bone,dmgInfo,dmgPos,dmgBlood,inputHole, out
 			end
 			
 			table.sort(org.wounds, function(a, b) return a[1] > b[1] end)
-
+			
 			if #org.wounds <= 30 then
 				local wounds = org.wounds
 				timer.Create("WoundsSend"..ent:EntIndex(),0.1,1,function()
@@ -689,7 +689,7 @@ hook.Add("EntityTakeDamage", "homigrad-damage", function(ent, dmgInfo)
 				end)
 			end*/
 
-			if bullet and false then
+			if bullet and true then
 				local mul = distance / pen
 				bullet.Src = outputHole[#outputHole]
 				bullet.Dir = dir:GetNormalized()//outputDir:GetNormalized()
@@ -706,7 +706,7 @@ hook.Add("EntityTakeDamage", "homigrad-damage", function(ent, dmgInfo)
 				bullet.penetrated = bullet.penetrated + 1
 				bullet.limit_ricochet = bullet.limit_ricochet + 1
 				bullet.Penetration = distance
-				inf:FireLuaBullets(bullet,true)
+				inf:FireLuaBullets(bullet, true)
 
 				local tr = util.QuickTrace(outputHole[#outputHole], -outputDir:GetNormalized() * 10, ent)
 				local effectdata1 = EffectData()

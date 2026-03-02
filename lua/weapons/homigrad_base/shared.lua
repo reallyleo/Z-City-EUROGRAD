@@ -667,9 +667,12 @@ function SWEP:EmitShoot()
 	local nearDist = (GetViewEntity() == ply or GetViewEntity():GetPos():Distance( self:GetPos() ) < 150)
 
 	if GetGlobalBool("hg_shoot_tinnitus", false) and nearDist and !self.Supressor and !hadEarProtection then
-		lply.TinnitusFactor = (lply.TinnitusFactor or 0) + ( (self.Primary.Force * (self.NumBullet or 1) ) / 3) + insideVal
-		if lply.TinnitusFactor > 32 then
-			lply:AddTinnitus(lply.TinnitusFactor / 100)
+		local result = hook.Run("ZC_DisableShootTinnitus",lply,insideVal)
+		if !result then
+			lply.TinnitusFactor = (lply.TinnitusFactor or 0) + ( (self.Primary.Force * (self.NumBullet or 1) ) / 3) + insideVal
+			if lply.TinnitusFactor > 32 then
+				lply:AddTinnitus(lply.TinnitusFactor / 100)
+			end
 		end
 	end
 
@@ -2061,8 +2064,8 @@ function SWEP:SetHandPos(noset)
 	if not rhmat or not lhmat then return end
 
 	local atk = hg.KeyDown(ply, IN_ATTACK)
-	self.anglefinger[2] = LerpFT(atk and 1 or 0.1, self.anglefinger[2], atk and 45 or 0)
-
+	self.anglefinger[2] = LerpFT(atk and 1 or 0.1, self.anglefinger[2], self:CanUse() and atk and 30 or 0)
+	self.anglefinger[1] = self.anglefinger[2] * 0.3
 	if !should then
 		local vec1, ang1 = -(-self.handPos), -(-self.handAng)
 

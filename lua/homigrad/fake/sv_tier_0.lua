@@ -267,7 +267,7 @@ function hg.Ragdoll_Create(ply)
 					//hook.Run("CanExitVehicle", ply, veh)
 					if !hg.leaveveh then hg.fallfromveh = true end
 					hg.leaveveh = true
-					ply:ExitVehicle()
+					if IsValid(ply) then ply:ExitVehicle() end
 
 					table.RemoveByValue(veh.rags, ragdoll)
 
