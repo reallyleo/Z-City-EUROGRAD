@@ -14,7 +14,7 @@ MODE.OverrideSpawn = true
 MODE.LootSpawn = true
 MODE.LootOnTime = true
 
-MODE.Chance = 0.05
+MODE.Chance = 0.06 -- hi whoever is reading this
 MODE.LootDivTime = 500
 
 MODE.LootTable = {
