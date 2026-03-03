@@ -780,7 +780,10 @@ hook.Add("Player-Ragdoll think", "organism-think-client-blood", function(ply, en
 		
 		if dist < 64 * 64 and (ply == lply or checkingplayer) then
 			local vol = checkingplayer and 2 or ((pain > 60 and ply == lply) and 1 or (pulse > 200 and ((200 - 95) / 50 + 0.12 - (pulse - 200) / 1000) or pulse > 95 and (pulse - 95) / 50 + 0.12 or 0.12))
-			
+			if not checkingplayer then
+				vol = math.Clamp(vol, 0, 0.7)
+			end
+
 			--ply:EmitSound("heartbeat/heartbeat_single.wav", 55, 60, vol)
 			if ent:GetVelocity():LengthSqr() < 10 then
 				sound.Play("heartbeat/heartbeat_single.wav", ply:EyePos(), 55, 60, vol)

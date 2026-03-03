@@ -1108,6 +1108,8 @@ if SERVER then
 	end)
 end
 
+local hg_slings = ConVarExists("hg_slings") and GetConVar("hg_slings") or CreateConVar("hg_slings", 0, FCVAR_SERVER_CAN_EXECUTE + FCVAR_ARCHIVE, "Toggle sling system", 0, 1)
+
 local vpang1, vpang2 = (Angle(1,-1.5,-1.8) / 1.5), (Angle(-1,1.5,1.8) / 1.5)
 local bashvpang = Angle(-10, 0, 0)
 function SWEP:CoreStep()
@@ -1195,7 +1197,7 @@ function SWEP:CoreStep()
 		--self:WorldModel_Transform()
 	end]]
 
-	--[[if owner:IsPlayer() then
+	if owner:IsPlayer() and hg_slings:GetBool() then
 		local inv = owner:GetNetVar("Inventory")
 		
 		local noSling = inv and (not inv["Weapons"] or not inv["Weapons"]["hg_sling"])
@@ -1205,7 +1207,7 @@ function SWEP:CoreStep()
 		if not self.shouldntDrawHolstered and noSling then
 			owner.holdingWeapon = owner:GetActiveWeapon() ~= self and self or nil
 		end
-	end--]]
+	end
 	
 	if not self.reload and self.RevertMag then
 		self:RevertMag()
@@ -1235,13 +1237,15 @@ function SWEP:CoreStep()
 	if SERVER and not owner:IsNPC() and owner.organism and (not owner.organism.canmove or ((owner.organism.stun - CurTime()) > 0) or (owner.organism.larm == 1 and owner.organism.rarm == 1)) and IsValid(actwep) and self == actwep then
 		self:RemoveFake()
 		
-		local inv = owner:GetNetVar("Inventory",{})
-		if not (inv["Weapons"] and inv["Weapons"]["hg_sling"] and not self:IsPistolHoldType()) then
-			//hg.drop(owner, self)
-			hook.Run("PlayerDropWeapon", owner)
-		else
-			hook.Run("PlayerDropWeapon", owner)
-			//owner:SetActiveWeapon(owner:GetWeapon("weapon_hands_sh"))
+		if hg_slings:GetBool() then
+			local inv = owner:GetNetVar("Inventory",{})
+			if not (inv["Weapons"] and inv["Weapons"]["hg_sling"] and not self:IsPistolHoldType()) then
+				hg.drop(owner, self)
+				hook.Run("PlayerDropWeapon", owner)
+			else
+				hook.Run("PlayerDropWeapon", owner)
+				owner:SetActiveWeapon(owner:GetWeapon("weapon_hands_sh"))
+			end
 		end
 
 		return
@@ -1685,14 +1689,14 @@ function SWEP:GetAdditionalValues()
 
 	--self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] - ((ply.lean or 0) * 2)
 	
-	local val = math.Clamp((self.deploy and ((self.deploy - CurTime()) * 10) or self.holster and (((self.CooldownDeploy / self.Ergonomics) - (self.holster - CurTime())) * 10) or 0) / (self.CooldownDeploy / self.Ergonomics),0,10)
-	--val = math.abs(math.sin(CurTime()))
-	--self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] - val * 1.5
-	--self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] - val * 2 * (self:IsPistolHoldType() and 0.5 or 0.75)
+	local val = math.Clamp((self.deploy and ((self.deploy - CurTime()) * 10) --[[or self.holster and (((self.CooldownDeploy / self.Ergonomics) - (self.holster - CurTime())) * 10)]] or 0) / (self.CooldownDeploy / self.Ergonomics),0,10)
+
+	self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] - val * 1.5
+	self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] - val * 2 * (self:IsPistolHoldType() and 0.5 or 0.75)
 	
-	--self.AdditionalAngPreLerp[1] = self.AdditionalAngPreLerp[1] + val / 10 * 40
-	--self.AdditionalAngPreLerp[3] = self.AdditionalAngPreLerp[3] + val / 10 * -90
-	--self.AdditionalAngPreLerp[2] = self.AdditionalAngPreLerp[2] + val / 10 * -90
+	self.AdditionalAngPreLerp[1] = self.AdditionalAngPreLerp[1] + val / 10 * 40
+	self.AdditionalAngPreLerp[3] = self.AdditionalAngPreLerp[3] + val / 10 * -90
+	self.AdditionalAngPreLerp[2] = self.AdditionalAngPreLerp[2] + val / 10 * -90
 
 	local animpos = self:GetNWFloat("addAttachment")
 	animpos = 1 - math.Clamp((animpos + 1 - CurTime()) / 1,0,1)
