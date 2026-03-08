@@ -935,3 +935,100 @@ players : 1 humans, 0 bots (20 max)
 		hook.Remove("Think","RemoveSF2_breath")
 	end)
 --//
+
+--\\ Flash effect
+	hook.Add("Player_Death","fixEyeAngles",function(ply)
+		timer.Simple(0.1,function()
+			if IsValid(ply) then
+				local ang = ply:EyeAngles()
+				ang[3] = 0
+				ply:SetEyeAngles(ang)
+			end
+		end)
+	end)
+
+	hg.flashes = {}
+	local tab = {}
+
+	local blackout_mat = Material("sprites/mat_jack_hmcd_narrow")
+
+	function hg.AddFlash(eyepos, dot, pos, time, size)
+		time = time or 20
+		size = size or 1000--pixels
+		size = size / math.max(pos:Distance(eyepos) / 64,0.01) * (dot^2)
+		local taint = math.max(200 - size,0) / 200 * time * 0.9
+		local scr = pos:ToScreen()
+
+		table.insert(hg.flashes,{x = scr.x, y = scr.y, time = CurTime() + time - taint, lentime = time, size = size})
+	end
+
+	local flash
+	local mat = Material("sprites/orangeflare1_gmod")
+	local mat2 = Material("sprites/glow04_noz")
+
+	amtflashed = 0
+	amtflashed2 = 0
+	
+	hook.Add("Player_Death","huyhuyhuy",function(ply)
+		if ply == LocalPlayer() then
+			hg.flashes = {}
+			amtflashed = 0
+			amtflashed2 = 0
+		end
+	end)
+
+	hook.Add("PreCleanupMap", "noflashesforyouMreowe", function()
+		hg.flashes = {}
+		amtflashed = 0
+		amtflashed2 = 0
+	end)
+
+	hook.Add("Post Post Pre Post Processing","flasheseffect",function()
+		if !lply:Alive() then
+			if !next(hg.flashes) then
+				hg.flashes = {}
+			end
+
+			amtflashed = 0
+			amtflashed2 = 0
+		end
+		if (#hg.flashes <= 0) and (amtflashed2 <= 0) then return end
+		amtflashed = 0
+		for i = 1,#hg.flashes do
+			flash = hg.flashes[i]
+
+			if (flash.time or 0) < CurTime() then table.remove(hg.flashes[i]) continue end
+
+			local animpos = (flash.time - CurTime()) / flash.lentime
+			local size = flash.size
+
+			flash.animpos = animpos
+
+			amtflashed = amtflashed + animpos * size / 5000
+		end
+		
+		amtflashed = amtflashed + amtflashed2
+		amtflashed2 = math.min(math.Approach(amtflashed2, 0, FrameTime() / 20),2)
+		
+		if amtflashed < 0.8 then
+			tab["$pp_colour_brightness"] = 0 - math.max(amtflashed - 0.1,0)
+			DrawColorModify(tab)
+		end
+
+		//amtflashed = math.max(amtflashed - math.ease.InOutCubic(math.max(0, math.sin(CurTime() * 1) - 0.6) / 0.4),0)
+
+		for i = 1, #hg.flashes do
+			flash = hg.flashes[i]
+			
+			local animpos = flash.animpos
+			local size = flash.size
+
+			local huy = (1 - animpos) * -100
+			surface.SetMaterial(mat)
+			surface.SetDrawColor(255, 255, 255, (animpos * 255 + math.Rand(-10,10) * animpos) * (0.5 / #hg.flashes) * (amtflashed < 0.8 and 1.5 or 1))
+			surface.DrawTexturedRect(flash.x - size / 2 + huy, flash.y - size / 2 + huy, size, size)
+			surface.SetMaterial(mat2)
+			surface.DrawTexturedRect(flash.x - size / 2 + huy, flash.y - size / 2 + huy, size, size)
+		end
+	end)
+--//

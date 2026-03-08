@@ -399,6 +399,7 @@ local function PhysCallback(ent, data)
 end
 
 local ents_Create, gamemod, clr_garbage = ents.Create, engine.ActiveGamemode(), Color(200, 200, 200)
+local gibRemoveTime = 60
 function SWEP:SpawnGarbage(mdl_custom, skin_custom, snd_custom, clr_custom, bgs_custom)
 	if CLIENT then return end
 
@@ -452,8 +453,8 @@ function SWEP:SpawnGarbage(mdl_custom, skin_custom, snd_custom, clr_custom, bgs_
 
 	if zb.CROUND and zb.CROUND ~= "hmcd" or gamemod == "sandbox" then
 		ent:DrawShadow(false)
-		ent:SetModelScale(0, 60)
-		SafeRemoveEntityDelayed(ent, 60)
+		ent:SetModelScale(0.5, gibRemoveTime)
+		SafeRemoveEntityDelayed(ent, gibRemoveTime)
 	end
 end
 

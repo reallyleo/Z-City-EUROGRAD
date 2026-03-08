@@ -133,7 +133,9 @@ function SWEP:MakeShell(shell, pos, ang, vel)
         end
     end)
 
-	if not hg_shouldnt_autoremove:GetBool() and (zb.CROUND and zb.CROUND ~= "hmcd" or gamemod == "sandbox") then	
+	if not hg_shouldnt_autoremove:GetBool() and (zb.CROUND and zb.CROUND ~= "hmcd" or gamemod == "sandbox") then
+		ent:DrawShadow(false)
+		ent:SetModelScale(0, 10)
 		SafeRemoveEntityDelayed(ent, 10)
 	end
 end

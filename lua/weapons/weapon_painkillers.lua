@@ -53,10 +53,23 @@ end
 
 local lang1, lang2 = Angle(0, -10, 0), Angle(0, 10, 0)
 function SWEP:Animation()
-    if (self:GetOwner().zmanipstart ~= nil and not self:GetOwner().organism.larmamputated) then return end
-    local hold = self:GetHolding()
-    self:BoneSet("r_upperarm", vector_origin, Angle(0, -10 - hold, 10))
-    self:BoneSet("r_forearm", vector_origin, Angle(-15, -hold, -hold))
+	local owner = self:GetOwner()
+	if (owner.zmanipstart ~= nil and not owner.organism.larmamputated) then return end
+
+	local aimvec = owner:GetAimVector()
+	if not aimvec then return end
+
+	local hold = self:GetHolding()
+
+	if owner:IsFlagSet(FL_DUCKING) or owner:GetVelocity():LengthSqr() >= 17000 then
+		aimvec[3] = -2
+		hold = hold / 2
+	end
+
+	local ducking = owner:IsFlagSet(FL_ANIMDUCKING)
+
+    self:BoneSet("r_upperarm", vector_origin, Angle(30 + 10 * aimvec[3], (-50 - hold) + 10 * aimvec[3] * (ducking and -4 or -2) + hold / 2, 10 - hold / 3))
+    self:BoneSet("r_forearm", vector_origin, Angle(-10, -hold, -hold))
 
     self:BoneSet("l_upperarm", vector_origin, lang1)
     self:BoneSet("l_forearm", vector_origin, lang2)

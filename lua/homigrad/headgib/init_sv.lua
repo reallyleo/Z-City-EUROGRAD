@@ -82,6 +82,7 @@ local grub, mat, gamemod = Model("models/grub_nugget_small.mdl"), "models/flesh"
 local meatModels = {
 	Model("models/props_junk/watermelon01_chunk02a.mdl"),
 }
+local gibRemoveTime = 60 --120
 function SpawnMeatGore(mainent, pos, count, force)
 	force = force or Vector(0,0,0)
 	for i = 1, (count or math.random(8, 10)) do
@@ -103,8 +104,8 @@ function SpawnMeatGore(mainent, pos, count, force)
 
 		if zb.CROUND and zb.CROUND ~= "hmcd" or gamemod == "sandbox" then
 			ent:DrawShadow(false)
-			ent:SetModelScale(0, 120)
-			SafeRemoveEntityDelayed(ent, 120)
+			ent:SetModelScale(0, gibRemoveTime)
+			SafeRemoveEntityDelayed(ent, gibRemoveTime)
 		end
 
 		ent:AddCallback( "PhysicsCollide", PhysCallback )
