@@ -90,7 +90,7 @@ local function plyCommand(ply,cmd)
 			hg.chat:SetRealAlpha(0)
 
 			timer.Create("otrubhuy", 1, 1, function()
-				if not lply.organism.otrub then lply:ConCommand("soundfade 0 1") end
+				if lply.organism and not lply.organism.otrub then lply:ConCommand("soundfade 0 1") end
 				hg.chat:AnimateRealAlpha(255)
 			end)
 		end
