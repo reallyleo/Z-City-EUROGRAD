@@ -293,6 +293,9 @@ local TPIKBonesLH = {
 
 hg.TPIKBonesLH = TPIKBonesLH
 
+local math, Vector, Angle, util, IsValid, CurTime, game, FrameTime, LerpAngle = math, Vector, Angle, util, IsValid, CurTime, game, FrameTime, LerpAngle
+local math_Clamp = math.Clamp
+
 local developer = GetConVar("developer")
 
 local PrikolModel = {
@@ -696,7 +699,7 @@ function hg.MainTPIKFunction(ent, ply, wpn)
     end
 
     if ent ~= ply and ent.organism and ent.organism.stamina and ent.organism.stamina[1] then
-        local stammul = math.Clamp(1 - ent.organism.stamina[1] / 90, 0, 1)
+        local stammul = math_Clamp(1 - ent.organism.stamina[1] / 90, 0, 1)
 
         local holdingrh = ent:GetManipulateBoneAngles(ent:LookupBone("ValveBiped.Bip01_R_Finger11"))[2] < 0
         if holdingrh then
@@ -1089,7 +1092,7 @@ function hg.DoTPIK(ply, ent)
         local q = Quaternion()--:SetAngle(eyeang)
         q = q * Quaternion():SetAngleAxis(angrr.y, Vector(0, 0, 1))
         q = q * Quaternion():SetAngleAxis(angrr.p, Vector(0, 1, 0))
-        q = q * Quaternion():SetAngleAxis(-90 + angrr.y - eyeang.y + eyeang.r, Vector(1, 0, 0))
+        q = q * Quaternion():SetAngleAxis(-135 + angrr.y - eyeang.y + eyeang.r, Vector(1, 0, 0))
         --q:SetAngleAxis(-angle2 + 180, Vector(0, 1, 0))
         --q:SetAngleAxis(180, Vector(1, 0, 0))
         local ang = q:Angle()
@@ -1109,7 +1112,7 @@ function hg.DoTPIK(ply, ent)
         local q = Quaternion()--:SetAngle(anga)
         q = q * Quaternion():SetAngleAxis(angrr.y, Vector(0, 0, 1))
         q = q * Quaternion():SetAngleAxis(angrr.p, Vector(0, 1, 0))
-        q = q * Quaternion():SetAngleAxis(-180 + eyeang.r - angrr.r - math.NormalizeAngle((eyeang.y - angrr.y)) * (math.NormalizeAngle(angrr.p)) / 90, Vector(1, 0, 0))
+        q = q * Quaternion():SetAngleAxis(-135 - angrr.r + eyeang.r - math.NormalizeAngle((eyeang.y - angrr.y)) * (math.NormalizeAngle(angrr.p)) / 90, Vector(1, 0, 0))
         --q:SetAngleAxis(-angle2 + 180, Vector(0, 1, 0))
         --q:SetAngleAxis(180, Vector(1, 0, 0))
         local ang = q:Angle()
@@ -1119,7 +1122,7 @@ function hg.DoTPIK(ply, ent)
         if false and ply.organism and ply.organism.rarm and ply.organism.rarm > 0.99 then
             local ang = ang//qt:Angle()
             ang:RotateAroundAxis(ang:Forward(), -95)
-            ply_r_hand_matrix:SetAngles(LerpAngle(math.Clamp(ply.leftClicking * 2, 0, 1), ang, ply_r_hand_matrix:GetAngles()))
+            ply_r_hand_matrix:SetAngles(LerpAngle(math_Clamp(ply.leftClicking * 2, 0, 1), ang, ply_r_hand_matrix:GetAngles()))
         end
 
         hg.bone_apply_matrix(ent, ply_r_upperarm_index, ply_r_upperarm_matrix, ply_r_forearm_index)
@@ -1132,7 +1135,7 @@ function hg.DoTPIK(ply, ent)
             hg.bone_apply_matrix(ply, ply_r_hand_index, ply_r_hand_matrix)
         end
 
-        local angrotate = math.NormalizeAngle(ply_r_hand_matrix:GetAngles().r + math.NormalizeAngle((eyeang.y - ply_r_hand_matrix:GetAngles().y)) * (math.NormalizeAngle(ply_r_hand_matrix:GetAngles().p)) / 90 - 45)
+        local angrotate = math.NormalizeAngle(-eyeang.r + ply_r_hand_matrix:GetAngles().r + math.NormalizeAngle((eyeang.y - ply_r_hand_matrix:GetAngles().y)) * (math.NormalizeAngle(ply_r_hand_matrix:GetAngles().p)) / 90 + 270)
 
         local wrst = ent:LookupBone("ValveBiped.Bip01_R_Ulna")
         local wmat = wrst and ent:GetBoneMatrix(wrst)
@@ -1278,7 +1281,7 @@ function hg.DoTPIK(ply, ent)
         local q = Quaternion()--:SetAngle(eyeang)
         q = q * Quaternion():SetAngleAxis(angrr.y, Vector(0, 0, 1))
         q = q * Quaternion():SetAngleAxis(angrr.p, Vector(0, 1, 0))
-        q = q * Quaternion():SetAngleAxis(-30 + eyeang.r - angrr.r - math.NormalizeAngle((eyeang.y - angrr.y)) * (math.NormalizeAngle(angrr.p)) / 90, Vector(1, 0, 0))
+        q = q * Quaternion():SetAngleAxis(-30 - angrr.r + eyeang.r - math.NormalizeAngle((eyeang.y - angrr.y)) * (math.NormalizeAngle(angrr.p)) / 90, Vector(1, 0, 0))
         --q:SetAngleAxis(-angle2 + 180, Vector(0, 1, 0))
         --q:SetAngleAxis(180, Vector(1, 0, 0))
         local ang = q:Angle()
@@ -1309,7 +1312,7 @@ function hg.DoTPIK(ply, ent)
             hg.bone_apply_matrix(ply, ply_l_hand_index, ply_l_hand_matrix)
         end
 
-        local angrotate = math.NormalizeAngle(ply_l_hand_matrix:GetAngles().r + math.NormalizeAngle((eyeang.y - ply_l_hand_matrix:GetAngles().y)) * (math.NormalizeAngle(ply_l_hand_matrix:GetAngles().p)) / 90 - 45)
+        local angrotate = math.NormalizeAngle(-eyeang.r + ply_l_hand_matrix:GetAngles().r + math.NormalizeAngle((eyeang.y - ply_l_hand_matrix:GetAngles().y)) * (math.NormalizeAngle(ply_l_hand_matrix:GetAngles().p)) / 90 - 45)
 
         local wrst = ent:LookupBone("ValveBiped.Bip01_L_Ulna")
         local wmat = wrst and ent:GetBoneMatrix(wrst)
@@ -1408,9 +1411,9 @@ function hg.Solve2PartIK(start_p, end_p, length0, length1, mat0, mat1, sign, tor
     local prev_ang1 = Quaternion():SetMatrix(mat1)
     local angar = prev_ang1:Angle()
 
-    local cosAngle0 = math.Clamp(((length2 * length2) + (length0 * length0) - (length1 * length1)) / (2 * length2 * length0), -1, 1)
+    local cosAngle0 = math_Clamp(((length2 * length2) + (length0 * length0) - (length1 * length1)) / (2 * length2 * length0), -1, 1)
     local angle0 = -math.deg(math.acos(cosAngle0))
-    local cosAngle1 = math.Clamp(((length1 * length1) + (length0 * length0) - (length2 * length2)) / (2 * length1 * length0), -1, 1)
+    local cosAngle1 = math_Clamp(((length1 * length1) + (length0 * length0) - (length2 * length2)) / (2 * length1 * length0), -1, 1)
     local angle1 = -math.deg(math.acos(cosAngle1))
     local diff = end_p - start_p-- + LocalPlayer():EyeAngles():Forward() * 555
     diff:Normalize()
@@ -1545,8 +1548,8 @@ end
 
 local vec1 = Vector(0, 2, 0)
 local vec2 = Vector(0, -2, 0)
-local ang1 = Angle(-0,25,0)
-local ang2 = Angle(-0,-25,180)
+local ang1 = Angle(-30,5,70)
+local ang2 = Angle(-30,-5,110)
 
 function hg.DragHands(ply,self)
     if not IsValid(ply) then return end
@@ -1563,7 +1566,8 @@ function hg.DragHands(ply,self)
 	local bon = ply:GetNetVar("carrybone",0) ~= 0 and ply:GetNetVar("carrybone",0) or ply:GetNetVar("carrybone2",0)
 	local lpos = IsValid(ent) and ply:GetNetVar("carrypos",nil) or ply:GetNetVar("carrypos2",nil)
 	--local twohands = (ply:GetNetVar("carrymass",0) ~= 0 and ply:GetNetVar("carrymass",0) or ply:GetNetVar("carrymass2",0)) > 15
-	local twohands = ply:GetNetVar("carrymass",0) > 15 or (!hg.CanUseLeftHand(ply) and ply:GetActiveWeapon():GetClass() == "weapon_hands_sh")
+	local wep = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon()
+	local twohands = ply:GetNetVar("carrymass",0) > 15 or (!hg.CanUseLeftHand(ply) and wep and wep:GetClass() == "weapon_hands_sh")
 
 	local norm
     local dist
@@ -1600,26 +1604,37 @@ function hg.DragHands(ply,self)
     
 	if pos then
         local dot = (pos - ply_spine_matrix:GetTranslation()):GetNormalized():Dot(eyetr.Normal:Angle():Right())
-        
-        --hg.bone.Set(ply, "spine", vector_origin, Angle(0, 0, -dot * 25), "holding")
-        --hg.bone.Set(ply, "spine2", vector_origin, Angle(0, 0, -dot * 25), "holding")
-        --hg.bone.Set(ply, "head", vector_origin, -Angle(0, 0, -dot * 50), "holding2")
-        --надо тогда и на сервере делать, а то будет различаться
 
+		if wep and not ishgweapon(wep) then -- ЮЗЛЕСС ПРАТСИИИИ ПРАСТИИИИИИИИ
+			hg.bone.Set(ply, "spine", vector_origin, Angle(0, 0, -dot * 20), "holding")
+			hg.bone.Set(ply, "spine2", vector_origin, Angle(0, 0, -dot * 25), "holding2")
+			hg.bone.Set(ply, "head", vector_origin, -Angle(0, 0, -dot * 30), "holding3")
+		end
+        --надо тогда и на сервере делать, а то будет различаться --!! не так уж и сильно различается
+
+		--!! ломает аксесуары
         --local matang = ply_spine_matrix:GetAngles()
         --matang[2] = matang[2] - dot * 40
         --ply_spine_matrix:SetAngles(matang)
         --hg.bone_apply_matrix(ply, ply_spine_index, ply_spine_matrix)
 
-        local amputee = ply.organism and ply.organism.larmamputated
+		local amputee = ply.organism and ply.organism.larmamputated
+
+		local posDot = (pos - ply_spine_matrix:GetTranslation()):GetNormalized():Dot(ply_spine_matrix:GetAngles():Forward()) * -50
+		local posMul = math_Clamp(-(-posDot / 20), 0.1, 1.5)
+		local posMul2 = math_Clamp(-posDot / 20, -1, 1)
+		local posMul3 = math_Clamp((-posDot + 30) / 20, 1, 2)
+
+		ang1 = Angle(-30 * posMul,5,70 * -posMul2)
+		ang2 = Angle(-30 * posMul,-5,-120 * -posMul3)
 
         if twohands or amputee then
 
             local oldpos = rhmat:GetTranslation()
             --pos = pos + LerpFT(0.01,ply.oldposrh or (pos - oldpos),pos - oldpos)
-            pos.x = math.Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
-            pos.y = math.Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
-            pos.z = math.Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
+            pos.x = math_Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
+            pos.y = math_Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
+            pos.z = math_Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
 
             rhmat:SetTranslation(pos)
 
@@ -1642,9 +1657,9 @@ function hg.DragHands(ply,self)
         if amputee then return end
 
         local oldpos = lhmat:GetTranslation()
-        pos.x = math.Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
-        pos.y = math.Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
-        pos.z = math.Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
+        pos.x = math_Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
+        pos.y = math_Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
+        pos.z = math_Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
 
         if norm then
             local pos,newang = LocalToWorld(twohands and vec1 or vector_origin,ang1,pos,norm:Angle())
@@ -1684,9 +1699,9 @@ function hg.DragRightHand(ply,self,pos,norm,anglh)
     
 	if pos then
         local oldpos = rhmat:GetTranslation()
-        pos.x = math.Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
-        pos.y = math.Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
-        pos.z = math.Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
+        pos.x = math_Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
+        pos.y = math_Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
+        pos.z = math_Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
 
         if norm then
             local pos,newang = LocalToWorld(Vector(0,0,0), anglh or Angle(0,0,0),pos,norm:Angle())
@@ -1722,9 +1737,9 @@ function hg.DragLeftHand(ply, self, pos, norm, anglh)
     
 	if pos then
         local oldpos = lhmat:GetTranslation()
-        pos.x = math.Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
-        pos.y = math.Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
-        pos.z = math.Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
+        pos.x = math_Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
+        pos.y = math_Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
+        pos.z = math_Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
 
         if norm then
             local pos,newang = LocalToWorld(Vector(0,0,0), anglh or Angle(0,0,0),pos,norm:Angle())
@@ -1752,9 +1767,9 @@ function hg.DragLeftHand_Ex(ply, self, pos, ang, anglh)
     
 	if pos then
         local oldpos = lhmat:GetTranslation()
-        pos.x = math.Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
-        pos.y = math.Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
-        pos.z = math.Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
+        pos.x = math_Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
+        pos.y = math_Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
+        pos.z = math_Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
 
         if ang then
             local pos,newang = LocalToWorld(Vector(0,0,0), anglh or Angle(0,0,0),pos,ang)
@@ -1782,9 +1797,9 @@ function hg.DragRightHand_Ex(ply, self, pos, ang, angrh)
     
 	if pos then
         local oldpos = rhmat:GetTranslation()
-        pos.x = math.Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
-        pos.y = math.Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
-        pos.z = math.Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
+        pos.x = math_Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
+        pos.y = math_Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
+        pos.z = math_Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
 
         if ang then
             local pos,newang = LocalToWorld(Vector(0,0,0), angrh or Angle(0,0,0),pos,ang)
@@ -1830,9 +1845,9 @@ function hg.DragHandsToPos(ply,self,pos,twohanded,twohanddist,norm,angrh,anglh)
 
             local oldpos = rhmat:GetTranslation()
             --pos = pos + LerpFT(0.01,ply.oldposrh or (pos - oldpos),pos - oldpos)
-            pos.x = math.Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
-            pos.y = math.Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
-            pos.z = math.Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
+            pos.x = math_Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
+            pos.y = math_Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
+            pos.z = math_Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
 
             rhmat:SetTranslation(pos)
 
@@ -1848,9 +1863,9 @@ function hg.DragHandsToPos(ply,self,pos,twohanded,twohanddist,norm,angrh,anglh)
 
 
         local oldpos = lhmat:GetTranslation()
-        pos.x = math.Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
-        pos.y = math.Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
-        pos.z = math.Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
+        pos.x = math_Clamp(pos.x, oldpos.x - 38, oldpos.x + 38)
+        pos.y = math_Clamp(pos.y, oldpos.y - 38, oldpos.y + 38)
+        pos.z = math_Clamp(pos.z, oldpos.z - 38, oldpos.z + 38)
 
         if norm then
             local pos,newang = LocalToWorld(Vector(0,twohands and twohanddist or 5 or 0,0), anglh or Angle(0,0,0),pos,norm:Angle())

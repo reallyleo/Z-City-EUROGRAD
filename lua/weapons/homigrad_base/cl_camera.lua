@@ -99,7 +99,7 @@ function SWEP:GetZoomPos(recoilZoomPos, view, eyePos)
 		if self:HasAttachment("sight","optic") then
 			posZoom = posZoom - recoilZoomPos * 0.25 - ang2:Forward() * (self.AdditionalPos2[1]) * 0.5 + ang2:Forward() * 1
 		else
-			local _, hitpos, dist = util.DistanceToLine(posZoom, posZoom + view.angles:Forward(), eyePos)
+			local _, hitpos, dist = util.DistanceToLine(posZoom, posZoom + (self:GetOwner():EyeAngles()):Forward(), eyePos)
 			dist = dist - 1
 			posZoom = posZoom + ang2:Forward() * dist - recoilZoomPos * 0.5
 		end
@@ -235,8 +235,10 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	--if hg_aiminganim:GetBool() then
 		self.k = Lerp(self.Ergonomics * FrameTime() * 2, self.k or 0, zoom and 1 or 0)
 	--else
-	--	self.k = math.Approach(self.k or 0, zoom and 1 or 0, FrameTime() * 3 * self.Ergonomics)
+		--self.k = math.Approach(self.k or 0, zoom and 1 or 0, FrameTime() * 2)
 	--end
+
+	if self.deploy or self.holster then self.k = 0 end
 
 	local k = math.min(1, math.ease.InOutCubic(self.k * 1))
 

@@ -91,18 +91,11 @@ input_list.brain = function(org, bone, dmg, dmgInfo)
 		local dmgPos = dmgInfo:GetDamagePosition()
 		local dirCool = dmgInfo:GetDamageForce():GetNormalized()
 
-		net.Start("hg_bloodimpact")
-		net.WriteVector(dmgPos)
-		net.WriteVector(dirCool/15)
-		net.WriteFloat(dmg/10)
-		net.WriteInt(1,8)
-		net.Broadcast()
-
 		local effdata = EffectData()
 		effdata:SetOrigin(dmgPos)
-		effdata:SetRadius(0)
-		effdata:SetMagnitude(0)
-		effdata:SetScale(0)
+		effdata:SetRadius(dmg / 10)
+		effdata:SetMagnitude(dmg / 10)
+		effdata:SetScale(1)
 		util.Effect("BloodImpact",effdata)
 	end
 
