@@ -19,42 +19,55 @@ local hg_coolcameralerpmult = ConVarExists("hg_coolcameralerpmult") and GetConVa
 function GetCoolCameraBool()
 	return hg_coolcamera:GetBool() and !lply:InVehicle()
 end
-realanglelerp = Angle()
 
+local diff = Angle()
 hook.Add("InputMouseApply", "fakeCameraAngles", function(cmd, x, y, angle)
 	local tbl = {}
-	
-	if GetCoolCameraBool() then
-		realangle = realangle or angle
+	local cc = GetCoolCameraBool()
+	if cc then
+		realanglelerp = realanglelerp or angle
+		diff = diff + realanglelerp + GetViewPunchAngles2() * 1 + GetViewPunchAngles() * 1 + GetViewPunchAngles3() * 1 + GetViewPunchAngles4() * 1 - angle
+		diff.r = 0
+		realangle = realangle and (realangle - diff) or angle
+		realangle:Normalize()
 		angle = realangle
 	end
-
+	
 	tbl.cmd = cmd
 	tbl.x = x
 	tbl.y = y
 	tbl.angle = angle
 	
+	if cc then
+		tbl.angle = realangle
+	end
+
 	hook.Run("HG.InputMouseApply", tbl)
 
 	if !lply:Alive() then
 		tbl.angle.r = 0
 	end
-	
+
 	cmd = tbl.cmd
 	x = tbl.x
 	y = tbl.y
 	angle = tbl.angle
+	
+	if cc then
+		realangle = tbl.angle
+	end
 
 	if not tbl.override_angle then
 		angle.pitch = math.Clamp(angle.pitch + y / 50, -89, 89)
 		angle.yaw = angle.yaw - x / 50
 	end
 
-	if GetCoolCameraBool() then
-		realangle = angle
+	if cc then
 		realanglelerp = LerpAngleFT(0.09 * (hg_coolcameralerpmult:GetFloat() or 1), realanglelerp, realangle)
 		angle = realanglelerp + GetViewPunchAngles2() * 1 + GetViewPunchAngles() * 1 + GetViewPunchAngles3() * 1 + GetViewPunchAngles4() * 1
 		if !IsValid(lply.FakeRagdoll) then angle[1] = math.Clamp(angle[1], -89, 89) end
+		realangle = realangle + diff
+		diff = LerpAngleFT(0.01, diff, angle_zero)
 		cmd:SetViewAngles(angle)
 	else
 		cmd:SetViewAngles(angle)
@@ -72,6 +85,7 @@ local lerpedq = Quaternion()
 local hg_newfakecam = ConVarExists("hg_newfakecam") and GetConVar("hg_newfakecam") or CreateConVar("hg_newfakecam", 0, FCVAR_ARCHIVE, "New camera rotate", 0, 1)
 local rollang = 0
 local ctime
+local vecUpX, vecUpY, vecUpZ = Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)
 hook.Add("HG.InputMouseApply", "fakeCameraAngles2", function(tbl)
 	if IsValid(follow) and ctime != CurTime() then
 		ctime = CurTime()
@@ -93,11 +107,6 @@ hook.Add("HG.InputMouseApply", "fakeCameraAngles2", function(tbl)
 	end
 
 	ViewPunch4(Angle(y / 50 / 16, -x / 50 / 16, -x / 50 / 1) * 0.1)
-	
-	if GetCoolCameraBool() then
-		realangle.roll = angle.roll
-		angle = realangle
-	end
 
 	if !IsValid(lply) or !lply:Alive() then return end
 
@@ -105,8 +114,12 @@ hook.Add("HG.InputMouseApply", "fakeCameraAngles2", function(tbl)
 		oldlean = 0
 		lean_lerp = 0
 	end
-	
-	--local follow = follow or lply
+
+	--[[local follow
+	if not lply:OnGround() and lply:GetMoveType() ~= MOVETYPE_NOCLIP then
+		follow = follow or lply
+	end]]
+
 	if lply:InVehicle() and not IsValid(follow) then
 		tbl.override_angle = true
 		tbl.angle = angle_zero
@@ -114,7 +127,7 @@ hook.Add("HG.InputMouseApply", "fakeCameraAngles2", function(tbl)
 	end
 
 	if !IsValid(follow) then
-		tbl.angle.roll = 0 + lean_lerp * 10
+		tbl.angle.roll = lean_lerp * 10
 		
 		return
 	end
@@ -134,7 +147,7 @@ hook.Add("HG.InputMouseApply", "fakeCameraAngles2", function(tbl)
 	angle2.roll = rollang
 	
 	if GetGlobalBool("hg_shitty_fake", true) and math.abs(math.AngleDifference(rollang, angle.roll)) < 60 then
-		angle = LerpAngleFT(follow == lply.OldRagdoll and 0.05 or 0.01, angle, angle2)--math.Approach(angle.roll, rollang, adda * ftlerped * 80)
+		angle = LerpAngleFT(follow == lply.OldRagdoll and 0.1 or 0.01, angle, angle2)--math.Approach(angle.roll, rollang, adda * ftlerped * 80)
 	end
 
 	local fucke = false--!hg_newfakecam:GetBool()
@@ -144,10 +157,9 @@ hook.Add("HG.InputMouseApply", "fakeCameraAngles2", function(tbl)
 	rollang = rollang + lean_lerp * 0.5
 
 	local q = Quaternion():SetAngle(angle)
-
-    local q_pitch = Quaternion():SetAngleAxis(y / 50, Vector(0, 1, 0))
-    local q_yaw = Quaternion():SetAngleAxis(-x / 50, Vector(0, 0, 1))
-    local q_roll = Quaternion():SetAngleAxis(lean_lerp * 0.5 + huy + x / 50 * math.abs(angle.pitch / 90), Vector(1, 0, 0))
+    local q_pitch = Quaternion():SetAngleAxis(y / 50, vecUpY)
+    local q_yaw = Quaternion():SetAngleAxis(-x / 50, vecUpZ)
+    local q_roll = Quaternion():SetAngleAxis(lean_lerp * 0.5 + huy + x / 50 * math.abs(angle.pitch / 90), vecUpX)
 	
 	q = q * q_pitch * q_yaw * q_roll
 
@@ -169,7 +181,7 @@ hook.Add("HG.InputMouseApply", "fakeCameraAngles2", function(tbl)
 	end
 
 	if lply:InVehicle() then
-		angle.roll = math.Clamp(angle.roll, -15, 15)
+		angle.roll = 0
 	end
 	
 	tbl.override_angle = true
@@ -361,7 +373,7 @@ CalcView = function(ply, origin, angles, fov, znear, zfar)
 	view = hook.Run("Camera", ply, view.origin, view.angles, view, vector_origin) or view
 	
 	if GetCoolCameraBool() then
-		view.angles = realangle + GetViewPunchAngles() * 0.2 + vpang
+		view.angles = realangle + GetViewPunchAngles() * 0.2 - vpang
 		view.angles[3] = view.angles[3] - GetViewPunchAngles4()[3]
 	end
 
@@ -696,7 +708,7 @@ hook.Add("ServerRagdollTransferDecals","raghuy", function(ent, rag)
 end)
 
 
-hook.Add("OnEntityCreated", "TryCopyAppearanceNow", function( ent )
+--[[hook.Add("OnEntityCreated", "TryCopyAppearanceNow", function( ent )
 	--if not ent:IsRagdoll() then return end
 	--for k,ply in ipairs(ents.FindInSphere(ent:GetPos(),15)) do
 	--	if ply:IsPlayer() then
@@ -710,9 +722,10 @@ hook.Add("OnEntityCreated", "TryCopyAppearanceNow", function( ent )
 	--		ent:SetNetVar("Accessories", ply:GetNetVar("Accessories","none"))
 	--	end
 	--end
-end)
-local sphereRadius = 12
-hook.Add("Move","PushAwayRagdolls",function(ply)
+end)]]
+
+--[[local sphereRadius = 12
+hook.Add("Move","PushAwayRagdolls",function(ply) --// lagging
 	do return end
 	if not ply:Alive() and not hg.GetCurrentCharacter(ply):IsPlayer() then return end
 	local playerPos = ply:GetPos()
@@ -728,4 +741,4 @@ hook.Add("Move","PushAwayRagdolls",function(ply)
 		end
 		ent.pushCooldown = CurTime() + 0.1
     end
-end)
+end)]]

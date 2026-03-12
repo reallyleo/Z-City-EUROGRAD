@@ -392,7 +392,7 @@ function SWEP:ModelAnim(model, pos, ang)
     if !IsValid(owner) or !owner:IsPlayer() then return end
 
     local ent = hg.GetCurrentCharacter(owner)
-    local tr = hg.eyeTrace(owner, 20, ent)
+    local tr = hg.eyeTrace(owner, 40, ent)
     local eyeAng = owner:EyeAngles()
 
     local vel = ent:GetVelocity()
@@ -442,7 +442,7 @@ function SWEP:ModelAnim(model, pos, ang)
        addAngLerp.p = addAngLerp.p - math.min(math.abs(math.max(eyeAng.p,0)),25)
     end
 
-    addPosLerp.x = addPosLerp.x - 20 * math.max(0.5 - tr.Fraction,0)
+    addPosLerp.x = addPosLerp.x - 20 * math.max(0.5 - tr.Fraction, 0)
 
     if self.CanSuicide and owner.suiciding then
         addPosLerp:Set(self.SuicidePos)
@@ -847,7 +847,7 @@ function SWEP:Attack(owner, ent, vellen, attacktype, inattackLength)
         local tr = {}
 
         tr.start = eyetr.StartPos
-        tr.endpos = eyetr.StartPos + normal:Forward() * math.max(0.5, 1 - math.abs((0.5 - inattackLength) * 2)) * (self:GetAttackLength() + vellen)
+        tr.endpos = eyetr.StartPos + normal:Forward() * (attacktype and 1 or math.max(0.5, 1 - math.abs((0.5 - inattackLength) * 2))) * (self:GetAttackLength() + vellen)
         tr.filter = self.MultiDmg1 and {owner, ent} or self.HitEnts
 
         local size = 0.15
@@ -1023,6 +1023,12 @@ function SWEP:AddDecal()
     net.SendPVS(self:GetPos())
 end
 
+local hg_nomeleestop
+
+if CLIENT then
+    hg_nomeleestop = ConVarExists("hg_nomeleestop") and GetConVar("hg_nomeleestop") or CreateConVar("hg_nomeleestop", 0, FCVAR_ARCHIVE, "Toggle melee stop-on-hit animation feature", 0, 1)
+end
+
 function SWEP:CustomThink()
     local owner = self:GetOwner()
     local actwep = owner.GetActiveWeapon and owner:GetActiveWeapon()
@@ -1152,18 +1158,18 @@ function SWEP:CustomThink()
 
             local dmg = math.random(self.DamagePrimary - 3, self.DamagePrimary + 3)
 
+            local soft = self:IsEntSoft(ent)
             if !shouldhit then
                 goto meleeskip1
             end
 
             --self:SetInAttack(false)
-
-            if SERVER and self:IsEntSoft(ent) and self.HitEnts[#self.HitEnts] ~= ent then
+            if SERVER and soft and self.HitEnts[#self.HitEnts] ~= ent then
                 self:AddDecal()
             end
 
-			if CLIENT and self.weight > 0.4 and !self.stopanim then
-				if not self:IsEntSoft(ent) or self.AnimAlwaysBack then   
+			if CLIENT and IsFirstTimePredicted() and self.weight > 0.4 and (!self.stopanim or (!soft and !self.HitWorld)) and !hg_nomeleestop:GetBool() then
+				if !soft or self.AnimAlwaysBack or self.HitWorld then   
                     local mul = 5
                     self.animspeed = self.animspeed * mul
 
@@ -1183,6 +1189,7 @@ function SWEP:CustomThink()
 
                     self.stopanim = 0.2
 					self.reverseanim = true
+                    self.HitWorld = true
 				else
                     local timing = (1 - math.Clamp((self.animtime - CurTime()) / self.animspeed, 0, 1))
                     local mul = 5
@@ -1190,11 +1197,11 @@ function SWEP:CustomThink()
                     self.animtime = CurTime() - timing * self.animspeed * mul + self.animspeed * mul
                     self.animspeed = self.animspeed * mul
                     
-                    timer.Simple(0.4, function()
+                    timer.Simple(0.1, function()
                         if !IsValid(self) then return end
 
                         local timing = (1 - math.Clamp((self.animtime - CurTime()) / self.animspeed, 0, 1))
-                        local mul = 0.25
+                        local mul = 0.3
                         
                         self.animtime = CurTime() - timing * self.animspeed * mul + self.animspeed * mul
                         self.animspeed = self.animspeed * mul
@@ -1298,13 +1305,6 @@ function SWEP:CustomThink()
             if SERVER and self:IsEntSoft(ent) and self.DamageType == DMG_SLASH and self.HitEnts[#self.HitEnts] ~= ent then
                 self:AddDecal()
             end
-
-			if CLIENT and self.weight > 0.4 then
-				if not self:IsEntSoft(ent) then
-					self.animspeed = 3.5
-					self.reverseanim = true
-				end
-			end
 
             if CLIENT then goto meleeskip2 end
 
@@ -1428,13 +1428,15 @@ function SWEP:PrimaryAttack()
 
     if !self:InUse() then return end
     if (self:GetLastAttack() + self:GetAttackWait()) > CurTime() then return end
-    
+    if self.lastattack and (self.lastattack + self.attackwait) > CurTime() then return end
+
     local mul = 1 / math.Clamp((180 - self:GetOwner().organism.stamina[1]) / 90, 1, 2)
 
     
     self.HitEnts = nil
     self.FirstAttackTick = false
     self.AttackHitPlayed = false
+    self.HitWorld = false
     self:PlayAnim("attack", self.AnimTime1 / mul,false,nil,false,false)
     self:SetAttackType(1)
     self:SetLastAttack(CurTime() + self.AttackTime / mul)
@@ -1442,7 +1444,8 @@ function SWEP:PrimaryAttack()
     self:SetAttackLength(self.AttackLen1)
     self:SetAttackWait(self.WaitTime1 / mul)
     self:SetInAttack(true)
-
+    self.lastattack = CurTime() + self.Attack2Time / mul
+    self.attackwait = self.WaitTime2 / mul
     if CLIENT and not self:IsLocal() and ply.AnimRestartGesture then
         self:GetOwner():AnimRestartGesture(GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM, true)
     end
@@ -1525,7 +1528,7 @@ function SWEP:SecondaryAttack(override)
         
         return
     end
-
+    
     if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
 
     local ent = hg.GetCurrentCharacter(ply)
@@ -1533,20 +1536,24 @@ function SWEP:SecondaryAttack(override)
     if !self:InUse() then return end
     if (hg.KeyDown(ply, IN_USE) and not IsValid(ply.FakeRagdoll)) then return end
     if (self:GetLastAttack() + self:GetAttackWait()) > CurTime() then return end
+    if self.lastattack and (self.lastattack + self.attackwait) > CurTime() then return end
 
     local mul = 1 / math.Clamp((180 - ply.organism.stamina[1]) / 90, 1, 2)
-
+    
     self.HitEnts = nil
     self.FirstAttackTick = false
     self.AttackHitPlayed = false
+    self.HitWorld = false
     self:PlayAnim("attack2",self.AnimTime2 / mul,false,nil,false,false)
     self:SetAttackType(2)
     self:SetLastAttack(CurTime() + self.Attack2Time / mul)
-    self:SetAttackTime( self:GetLastAttack() + (self.Attack2TimeLength / mul) )
+    self:SetAttackTime(self:GetLastAttack() + (self.Attack2TimeLength / mul) )
     self:SetAttackLength(self.AttackLen2)
     self:SetAttackWait(self.WaitTime2 / mul)
     self:SetInAttack(true)
-    
+    self.lastattack = CurTime() + self.Attack2Time / mul
+    self.attackwait = self.WaitTime2 / mul
+
     if CLIENT and not self:IsLocal() and ply.AnimRestartGesture then
         ply:AnimRestartGesture(GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM, true)
     end
@@ -1654,11 +1661,11 @@ elseif CLIENT then
         local ent = net.ReadEntity()
         local sendtoclient = net.ReadBool()
 
-        if IsValid(ent) and ent.PlayAnim then
-            ent:PlayAnim(tbl.anim,tbl.time,tbl.cycling,tbl.callback,tbl.reverse)
-
-            if (tbl.anim == "attack" or tbl.anim == "attack2") and ent:GetOwner().AnimRestartGesture and IsValid(ent:GetOwner()) and not ent:GetOwner():IsWorld() then
-                if !ent:IsLocal() then
+        if ent.IsLocal and !ent:IsLocal() then
+            if IsValid(ent) and ent.PlayAnim then
+                ent:PlayAnim(tbl.anim,tbl.time,tbl.cycling,tbl.callback,tbl.reverse)
+                
+                if (tbl.anim == "attack" or tbl.anim == "attack2") and ent:GetOwner().AnimRestartGesture and IsValid(ent:GetOwner()) and not ent:GetOwner():IsWorld() then
                     ent:GetOwner():AnimRestartGesture(GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM, true)
                 end
             end
@@ -1750,6 +1757,8 @@ end
 
 function SWEP:NPCThink()
     local npc = self:GetOwner()
+    if not IsValid(npc) or not npc:IsNPC() then return end
+
     self:SetWeaponHoldType("melee")
     
     if npc:GetClass() == "npc_metropolice" then
@@ -1763,7 +1772,7 @@ function SWEP:NPCThink()
     end
     
     local enemy = npc:GetEnemy()
-    if not enemy then return end
+    if not IsValid(enemy) then return end
 
     local dist = enemy:GetPos():Distance(npc:GetPos())
 

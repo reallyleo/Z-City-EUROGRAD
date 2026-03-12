@@ -242,6 +242,16 @@ SWEP.LHAng = Angle(-110,-180,0)
 
 local finger1 = Angle(25,0, 40)
 
+function SWEP:ThinkAdd()
+	if CLIENT and self:GetWM() and not isbool(self:GetWM()) and isstring(self.FakeBodyGroups) then
+		if self:HasAttachment("grip", "grip_akdong") then
+			self:GetWM():SetBodyGroups("02300051022")
+		else
+			self:GetWM():SetBodyGroups(self.FakeBodyGroups)
+		end
+	end
+end
+
 SWEP.ShootAnimMul = 3
 function SWEP:DrawPost()
 	local wep = self:GetWeaponEntity()
