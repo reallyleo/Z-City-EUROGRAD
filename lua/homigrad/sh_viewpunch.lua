@@ -133,7 +133,7 @@ local IsValid = IsValid
 			end
 			
 			local angs = lply:EyeAngles()
-			--angs[3] = lastplyroll or angs[3]
+			angs[3] = lastplyroll or angs[3]
 			
 			local ang = angs + add
 			
