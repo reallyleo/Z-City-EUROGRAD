@@ -101,6 +101,46 @@ if SERVER then
 	concommand.Add("zb_savemodeschances", function(ply, cmd, args)
 		file.Write(chancesfile, util.TableToJSON(zb.ModesChances or {}, true))
 	end)
+
+	hook.Add("HG_PlayerSay", "ZB_GetModesChancesChatCommand", function(ply, txtTbl, text)
+		if not IsValid(ply) or not ply:IsSuperAdmin() then return end
+
+		local lowered = string.Trim(string.lower(text or ""))
+		if lowered ~= "!zb_getmodeschances" then return end
+
+		local chances = (zb.GetModesChances and zb.GetModesChances()) or zb.ModesChances or {}
+		local total = 0
+		local keys = {}
+
+		for name, chance in pairs(chances) do
+			keys[#keys + 1] = name
+			if isnumber(chance) and chance > 0 then
+				total = total + chance
+			end
+		end
+
+		table.sort(keys)
+
+		local function send(line)
+			if ply.zChatPrint then
+				ply:zChatPrint(line)
+			else
+				ply:ChatPrint(line)
+			end
+		end
+
+		send("Mode chances:")
+		for i = 1, #keys do
+			local name = keys[i]
+			local chance = chances[name] or 0
+			local percent = (total > 0 and (chance / total * 100)) or 0
+			send(name .. ": " .. tostring(chance) .. " (" .. string.format("%.2f", percent) .. "%)")
+		end
+
+		if istable(txtTbl) then
+			txtTbl[1] = ""
+		end
+	end)
 end
 
 local function LoadModes()
