@@ -1117,7 +1117,7 @@ end
 
 local hg_slings = ConVarExists("hg_slings") and GetConVar("hg_slings") or CreateConVar("hg_slings", 0, FCVAR_SERVER_CAN_EXECUTE + FCVAR_ARCHIVE, "Toggle sling system", 0, 1)
 
-local vpang1, vpang2 = (Angle(1,-1.5,-1.8) / 1.5), (Angle(-1,1.5,1.8) / 1.5)
+local vpang1 = Angle(-1, 1.5, 2) / 2
 local bashvpang = Angle(-10, 0, 0)
 local gamemod = engine.ActiveGamemode()
 function SWEP:CoreStep()
@@ -1353,16 +1353,13 @@ function SWEP:CoreStep()
 				sound.Play("pwb2/weapons/p90/cloth3.wav", self:GetPos(), 65)
 				self.zoomsound = true
 				if self:IsClient() then
-					--ViewPunch2(vpang1)
+					ViewPunch2(vpang1)
 				end
 			end
 		else
 			if self.zoomsound then
 				sound.Play("pwb2/weapons/matebahomeprotection/mateba_cloth.wav", self:GetPos(), 65)
 				//self:PlaySnd({"pwb2/weapons/matebahomeprotection/mateba_cloth.wav",60,80,120},false,CHAN_BODY)
-				if self:IsClient() then
-					--ViewPunch2(vpang2)
-				end
 			end
 			self.zoomsound = nil
 		end

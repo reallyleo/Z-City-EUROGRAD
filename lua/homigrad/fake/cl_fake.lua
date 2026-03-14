@@ -24,9 +24,11 @@ local diff = Angle()
 hook.Add("InputMouseApply", "fakeCameraAngles", function(cmd, x, y, angle)
 	local tbl = {}
 	local cc = GetCoolCameraBool()
+	local vpangs
 	if cc then
 		realanglelerp = realanglelerp or angle
-		diff = diff + realanglelerp + GetViewPunchAngles2() * 1 + GetViewPunchAngles() * 1 + GetViewPunchAngles3() * 1 + GetViewPunchAngles4() * 1 - angle
+		vpangs = GetViewPunchAngles2() * 1 + GetViewPunchAngles() * 1 + GetViewPunchAngles3() * 1 + GetViewPunchAngles4() * 1
+		diff = diff + realanglelerp + vpangs - angle
 		diff.r = 0
 		realangle = realangle and (realangle - diff) or angle
 		realangle:Normalize()
@@ -64,7 +66,7 @@ hook.Add("InputMouseApply", "fakeCameraAngles", function(cmd, x, y, angle)
 
 	if cc then
 		realanglelerp = LerpAngleFT(0.09 * (hg_coolcameralerpmult:GetFloat() or 1), realanglelerp, realangle)
-		angle = realanglelerp + GetViewPunchAngles2() * 1 + GetViewPunchAngles() * 1 + GetViewPunchAngles3() * 1 + GetViewPunchAngles4() * 1
+		angle = realanglelerp + vpangs
 		if !IsValid(lply.FakeRagdoll) then angle[1] = math.Clamp(angle[1], -89, 89) end
 		realangle = realangle + diff
 		diff = LerpAngleFT(0.01, diff, angle_zero)
@@ -374,7 +376,7 @@ CalcView = function(ply, origin, angles, fov, znear, zfar)
 	
 	if GetCoolCameraBool() then
 		view.angles = realangle + GetViewPunchAngles() * 0.2 - vpang
-		view.angles[3] = view.angles[3] - GetViewPunchAngles4()[3]
+		view.angles[3] = view.angles[3]
 	end
 
 	local wep = ply:GetActiveWeapon()

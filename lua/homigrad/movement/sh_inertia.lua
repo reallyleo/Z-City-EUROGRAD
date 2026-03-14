@@ -497,7 +497,7 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 			inertia_len = 100
 		end
 
-		if org.noradrenaline and org.noradrenaline > 0 then
+		if org.noradrenaline and org.noradrenaline > 0 and inertia_len > 0 then
 			inertia_len = inertia_len + 200 * math.Round(org.noradrenaline, 1)
 		end
 

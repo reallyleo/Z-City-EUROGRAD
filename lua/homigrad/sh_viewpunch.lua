@@ -121,7 +121,9 @@ local IsValid = IsValid
 				vp_punch_angle_velocity4 = Angle()
 			end
 
-			--if not lply:Alive() then vp_punch_angle:Zero() vp_punch_angle_velocity:Zero() vp_punch_angle2:Zero() vp_punch_angle_velocity2:Zero() end
+			if not lply:Alive() and not vp_punch_angle:IsZero() then
+				vp_punch_angle:Zero() vp_punch_angle_velocity:Zero() vp_punch_angle2:Zero() vp_punch_angle_velocity2:Zero()
+			end
 
 			local consmulrev = 1 - consmul
 			if vp_punch_angle:IsZero() and vp_punch_angle_velocity:IsZero() and vp_punch_angle2:IsZero() and vp_punch_angle_velocity2:IsZero() and vp_punch_angle3:IsZero() and vp_punch_angle_velocity3:IsZero() and  vp_punch_angle4:IsZero() and vp_punch_angle_velocity4:IsZero() then return end
@@ -133,7 +135,7 @@ local IsValid = IsValid
 			end
 			
 			local angs = lply:EyeAngles()
-			--angs[3] = lastplyroll or angs[3]
+			angs[3] = lastplyroll or angs[3]
 			
 			local ang = angs + add
 			

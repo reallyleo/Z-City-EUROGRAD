@@ -288,10 +288,12 @@ bulletHit = function(ply, tr, dmgInfo, bullet, Weapon)
 	local dist = trStart:DistToSqr(trPos)
 	if dist <= 160000 and (math.random(3) == 2 or force >= 35) and tr.Entity:IsWorld() and allowedMats[tr.MatType] then
 		util.Decal("Impact.ShootAdd" .. math.random(shootDecalRand), trPos + trNormal, trPos - trNormal)
+		util.ScreenShake(trPos, 16, 1, 1, 128)
 	end
 	
 	if force >= 35 and dist <= 1400000 and (math.random(3) == 2 or force >= 45) and !tr.Entity:IsRagdoll() then
 		util.Decal("Impact.ShootPowderAdd", trPos + trNormal, trPos - trNormal)
+		util.ScreenShake(trPos, 20, 10, 2, 150)
 	end
 
 	gasInertia(trPos, force * 3, -tr.Normal, Weapon, tr)

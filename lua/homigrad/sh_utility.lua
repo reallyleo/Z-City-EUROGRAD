@@ -439,17 +439,6 @@ hg.ConVars = hg.ConVars or {}
 			ply:SetDuckSpeed(0.4)
 			ply:SetUnDuckSpeed(0.4)
 			ply:AddEFlags(EFL_NO_DAMAGE_FORCES)
-
-			if CLIENT and not ply:IsLocal() and gamemod == "sandbox" then
-				if hg.DynaMusic then
-					if hg_sandboxmusic:GetBool() then
-						hg.DynaMusic:Stop()
-						hg.DynaMusic:Start(music_packs[math.random(#music_packs)])
-					else
-						hg.DynaMusic:Stop()
-					end
-				end
-			end
 		end)
 
 		if SERVER then
@@ -500,6 +489,17 @@ hg.ConVars = hg.ConVars or {}
 
 		if not override then
 			hook.Run("Player Spawn", ply)
+
+			if CLIENT and not ply:IsLocal() and gamemod == "sandbox" then
+				if hg.DynaMusic then
+					if hg_sandboxmusic:GetBool() then
+						hg.DynaMusic:Stop()
+						hg.DynaMusic:Start(music_packs[math.random(#music_packs)])
+					else
+						hg.DynaMusic:Stop()
+					end
+				end
+			end
 
 			if SERVER then
 				timer.Simple(0, function() ActivateNoCollision(ply, 5) end)
@@ -1146,7 +1146,7 @@ local IsValid = IsValid
 --//
 --\\ flashlight custom switch
 	hook.Add("PlayerSwitchFlashlight", "removeflashlights", function(ply, enabled)
-		if ply.PlayerClassName == "Combine" or ply.PlayerClassName == "furry" then return end --!! TODO: CLASS.NoFlashLight boolean
+		if ply.PlayerClassName == "Combine" or ply.PlayerClassName == "furry" then return false end --!! TODO: CLASS.NoFlashLight boolean
 
 		local wep = ply:GetActiveWeapon()
 

@@ -632,7 +632,7 @@ function hg.MainTPIKFunction(ent, ply, wpn)
     if not ply.InVehicle then return end
     
     //local systime = SysTime()
-    local should = hg.ShouldTPIK(ply,wpn)
+    local should = hg.ShouldTPIK(ply)
     //print("shouldtpik func: ", SysTime() - systime)
 
     if should then
