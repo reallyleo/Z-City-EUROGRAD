@@ -1117,7 +1117,7 @@ end
 
 local hg_slings = ConVarExists("hg_slings") and GetConVar("hg_slings") or CreateConVar("hg_slings", 0, FCVAR_SERVER_CAN_EXECUTE + FCVAR_ARCHIVE, "Toggle sling system", 0, 1)
 
-local vpang1 = Angle(-1, 1.5, 2) / 2
+local vpang1 = Angle(1, -1.5, 2) / 2
 local bashvpang = Angle(-10, 0, 0)
 local gamemod = engine.ActiveGamemode()
 function SWEP:CoreStep()
@@ -1350,15 +1350,16 @@ function SWEP:CoreStep()
 		if self:IsZoom() then
 			if not self.zoomsound then
 				//self:PlaySnd({"pwb2/weapons/p90/cloth3.wav",60,80,120},false,CHAN_BODY)
-				sound.Play("pwb2/weapons/p90/cloth3.wav", self:GetPos(), 65)
+				sound.Play("pwb2/weapons/p90/cloth3.wav", self:GetPos(), 55)
 				self.zoomsound = true
+				
 				if self:IsClient() then
 					ViewPunch2(vpang1)
 				end
 			end
 		else
 			if self.zoomsound then
-				sound.Play("pwb2/weapons/matebahomeprotection/mateba_cloth.wav", self:GetPos(), 65)
+				sound.Play("pwb2/weapons/matebahomeprotection/mateba_cloth.wav", self:GetPos(), 55)
 				//self:PlaySnd({"pwb2/weapons/matebahomeprotection/mateba_cloth.wav",60,80,120},false,CHAN_BODY)
 			end
 			self.zoomsound = nil
@@ -1731,6 +1732,19 @@ function SWEP:GetAdditionalValues()
 	self.AdditionalAngPreLerp[3] = self.AdditionalAngPreLerp[3] + animpos * -80
 	self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + animpos * -10
 	self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] + animpos * -20
+
+	if self:IsClient() and self:IsZoom() then
+		self.ZoomAnimLerp = LerpFT(0.05,self.ZoomAnimLerp or 0,self.k > 0.2 and self.k < 0.6 and 1 or 0)
+		self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + math.ease.InOutBack(self.ZoomAnimLerp) * 3
+		self.AdditionalAngPreLerp[3] = self.AdditionalAngPreLerp[3] + math.ease.InOutBack(self.ZoomAnimLerp) * 4
+		if not self.zoomingBigSnd and self.k > 0.6 and not self:IsPistolHoldType() then
+			self:EmitSound("weapons/universal/uni_ads_in_0" .. math.random(6) .. ".wav",40)
+			self.zoomingBigSnd = true
+		end
+	elseif self.zoomingBigSnd and self:IsClient() and self.k < 0.75 then
+		self:EmitSound("weapons/universal/uni_ads_out_01.wav",40)
+		self.zoomingBigSnd = false
+	end
 
 	local posture = ((animpos < 0.2 and self:IsSprinting()) or animpos > (self:IsPistolHoldType() and 0.5 or 0.2)) and (self:IsPistolHoldType() and 3 or 4) or ply.posture
 
