@@ -207,7 +207,7 @@ Can detect presence and potency of chemical agents in the air.]],
 			inv["Weapons"]["hg_flashlight"] = true
 			
 			ply:SetNetVar("Inventory", inv)
-			MODE.CleanChemicalsOfPlayer(ply)
+			CleanChemicalsOfPlayer(ply)
 		end,
 	},
 	--==//
