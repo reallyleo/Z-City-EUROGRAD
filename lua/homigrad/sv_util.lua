@@ -1,6 +1,8 @@
 local getBloodColor = FindMetaTable( "Entity" ).GetBloodColor
 local isBulletDamage = FindMetaTable( "CTakeDamageInfo" ).IsBulletDamage
 
+hg.ConVars = hg.ConVars or {}
+
 local hg_legacycam = ConVarExists("hg_legacycam") and GetConVar("hg_legacycam") or CreateConVar("hg_legacycam", 0, FCVAR_REPLICATED, "Toggle legacy first-person view camera", 0, 1)
 
 local host_timescale = game.GetTimeScale
