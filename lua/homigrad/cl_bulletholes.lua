@@ -14,94 +14,13 @@ hg.ConVars = hg.ConVars or {}
 local hg_bulletholesfps = CreateConVar("hg_bulletholesfps", "0", FCVAR_ARCHIVE + FCVAR_NOTIFY + FCVAR_REPLICATED, "How much fps should the view inside bullet holes be (0 = max)", 0, 300)
 local hg_bulletholes = CreateConVar("hg_bulletholes", "0", FCVAR_ARCHIVE + FCVAR_NOTIFY + FCVAR_REPLICATED, "Enable R6S bulletholes feature", 0, 1)
 
-hook.Add("PostRender", "getimagebullethole", function()
-    if !hg_bulletholes:GetBool() then return end
-    local holes = GetNetVar("BulletHoles")
-    
-    seena = false
-
-    if hg_bulletholesfps:GetInt() != 0 then
-        if timershit > CurTime() then return end
-        timershit = CurTime() + 1 / hg_bulletholesfps:GetInt()
-    end
-    
-    if !holes then return end
-    if drawing then return end
-
-    local view = render.GetViewSetup()
-    local fwd = view.angles:Forward()
-
-    local add = 1
-    center:Zero()
-    local cntr = 0
-    for i = 1, #holes do
-        local tbl = holes[i]
-        local pos, dir, pen, hitnormal, pen2, ent = tbl[1], tbl[2], tbl[3], tbl[4], tbl[5], tbl[6]
-        if !(IsValid(ent) or (ent and ent:IsWorld())) then continue end
-        local pos, dir = LocalToWorld(pos, dir, ent:GetPos(), ent:GetAngles())
-        local _, hitnormal = LocalToWorld(vector_origin, hitnormal, vector_origin, ent:GetAngles())
-        
-        local normf = hitnormal:Forward()
-        local dot = (pos - view.origin):GetNormalized():Dot(dir:Forward())
-        local dot2 = view.angles:Forward():Dot(-normf)
-
-        tbl.dot = dot
-        
-        if dot > 0.5 and dot2 > 0.5 then
-            center:Add(pos)
-            cntr = cntr + 1
-            add = math.max(add, (tbl[3]) * 1)
-        end
-    end
-    
-    if cntr <= 0 then return end
-    
-    center:Div(cntr)
-
-    local tr = {
-        start = view.origin,
-        endpos = view.angles:Forward() * 8000,
-        mins = -vecHull,
-        maxs = vecHull,
-        filter = {lply},
-    }
-    
-    trace = util.TraceHull(tr)
-    local pos = trace.HitPos
-    --debugoverlay.Line(trace.StartPos, trace.HitPos, 1, color_white, true)
-    local len = (view.origin - pos):Length() + 5
-
-    render.PushRenderTarget( rt )
-    
-    drawing = true
-    
-    render.RenderView({
-        znear = len,
-        //origin = pos + view.angles:Forward() * add,
-        drawhud = false,
-        drawmonitors = false,
-        drawviewer = false,
-        drawviewmodel = false,
-        viewid = VIEW_MONITOR,
-        --x = 500,
-        --y = 250,
-        --w = 1000,
-        --h = 500,
-    })
-
-    drawing = false
-
-    render.PopRenderTarget()
-end)
-
 hook.Add("PreDrawEffects","bulletholes-test",function()
     if !hg_bulletholes:GetBool() then return end
     local holes = GetNetVar("BulletHoles")
     
     if !holes then return end
-    if !trace then return end
-    
-    local pos = trace.HitPos
+    if drawing then return end
+
     local view = render.GetViewSetup()
 
     render.SetStencilWriteMask( 0xFF )
@@ -125,15 +44,17 @@ hook.Add("PreDrawEffects","bulletholes-test",function()
 
     render.SetColorMaterial()
     
+    local any = false
     for i = 1, #holes do
         local tbl = holes[i]
-        local pos, dir, pen, hitnormal, pen2, ent = tbl[1], tbl[2], tbl[3], tbl[4], tbl[5], tbl[6]
+        local ent = tbl[6]
         if !(IsValid(ent) or (ent and ent:IsWorld())) then continue end
+        local pos, dir, pen, hitnormal, pen2 = tbl[1], tbl[2], tbl[3], tbl[4], tbl[5]
 
-        local pos, dir = LocalToWorld(pos, dir, ent:GetPos(), ent:GetAngles())
-        local _, hitnormal = LocalToWorld(vector_origin, hitnormal, vector_origin, ent:GetAngles())
+        if (!ent:IsWorld() and ((!tbl.lastpos or !tbl.lastpos:IsEqualTol(ent:GetPos(), 0.1)) or (!tbl.lastang or !tbl.lastang:IsEqualTol(ent:GetAngles(), 0.1)))) or !tbl.pos1 then
+            local pos, dir = LocalToWorld(pos, dir, ent:GetPos(), ent:GetAngles())
+            local _, hitnormal = LocalToWorld(vector_origin, hitnormal, vector_origin, ent:GetAngles())
         
-        --if !ent:IsWorld() or !tbl.pos1 then
             local up, right = dir:Up() * pen2, -dir:Right() * pen2
             local pos1 = pos + up * 0.5 - right * 0.5
             local pos1, pos2, pos3, pos4 = pos1, pos1 - up, pos1 - up + right, pos1 + right
@@ -145,6 +66,9 @@ hook.Add("PreDrawEffects","bulletholes-test",function()
 
             local pos5, pos6, pos7, pos8 = pos1 + dir:Forward() * pen, pos2 + dir:Forward() * pen, pos3 + dir:Forward() * pen, pos4 + dir:Forward() * pen
             
+            tbl.lastpos = ent:GetPos()
+            tbl.lastang = ent:GetAngles()
+
             if !pos1 or !pos2 or !pos3 or !pos4 then
                 tbl.pos1 = nil
                 
@@ -178,13 +102,64 @@ hook.Add("PreDrawEffects","bulletholes-test",function()
             tbl.pos = pos
             tbl.dir = dir
             tbl.hitnormal = hitnormal
-        --end
+        end
         
-        --if tbl.dot < 0 then
-            render.DrawQuad(tbl.pos1, tbl.pos2, tbl.pos3, tbl.pos4, coltransparent)
-        --else
-        --    render.DrawQuad(tbl.pos1, tbl.pos2, tbl.pos3, tbl.pos4, color_black)
-        --end
+        render.DrawQuad(tbl.pos1, tbl.pos2, tbl.pos3, tbl.pos4, coltransparent)
+    end
+
+    for i = 1, #holes do
+        local tbl = holes[i]
+
+        if !tbl.pos1 then continue end
+        local normf = tbl.hitnormal:Forward()
+        local dot = (tbl.pos1 - view.origin):GetNormalized():Dot(tbl.dir:Forward())
+        --if dot < 0 then continue end
+        local dot2 = view.angles:Forward():Dot(-normf)
+        
+        if dot > 0.5 and dot2 > 0.5 then
+            any = true
+            
+            break
+        end
+    end
+    
+    if any and timershit < CurTime() then
+        timershit = CurTime() + ((hg_bulletholesfps:GetInt() == 0) and 0 or (1 / hg_bulletholesfps:GetInt()))
+        
+        local tr = {
+            start = view.origin,
+            endpos = view.angles:Forward() * 1000,
+            mins = -vecHull,
+            maxs = vecHull,
+            filter = {lply},
+        }
+        
+        trace = util.TraceHull(tr)
+        local pos = trace.HitPos
+    
+        local len = (view.origin - pos):Length() + 5
+
+        render.PushRenderTarget( rt )
+
+        drawing = true
+        
+        render.RenderView({
+            znear = len,
+            //origin = pos + view.angles:Forward() * add,
+            drawhud = false,
+            drawmonitors = false,
+            drawviewer = false,
+            drawviewmodel = false,
+            viewid = VIEW_MONITOR,
+            --x = 500,
+            --y = 250,
+            --w = 1000,
+            --h = 500,
+        })
+    
+        drawing = false
+    
+        render.PopRenderTarget()
     end
 
     render.SetStencilReferenceValue( 1 )
