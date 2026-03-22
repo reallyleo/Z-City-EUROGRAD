@@ -21,6 +21,13 @@ local song
 local songfade = 0
 local swatSirensPlayed = false
 
+surface.CreateFont("UnconsciousHint", {
+	font = "Bahnschrift",
+	size = 16,
+	weight = 400,
+	antialias = true
+})
+
 net.Receive("as_start", function()
 	surface.PlaySound("zbattle/criresp.mp3")
 	zb.RemoveFade()
@@ -53,6 +60,7 @@ end
 
 local posadd = 0
 local posaddSWAT = 0
+local shooterWaitHintAlpha = 0
 local CreateEndMenu
 net.Receive("as_roundend", function()
 	local winner = net.ReadUInt(8)
@@ -91,7 +99,7 @@ CreateEndMenu = function(winner)
 	if winner == 0 then
 		soundPath = "ambient/alarms/warningbell1.wav"
 	else
-		soundPath = "ambient/levels/prison/radio_random1.wav"
+		soundPath = "ambient/alarms/warningbell1.wav"
 	end
 
 	surface.PlaySound(soundPath)
@@ -219,6 +227,21 @@ function MODE:HUDPaint()
 	local shooterSpawnTime = startTime + 55
 	local swatArrivalTime = (zb.ROUND_START or startTime) + 240
 
+	local ply = LocalPlayer()
+	local waitingShooter = IsValid(ply) and ply:GetNWBool("AS_WaitingShooter", false)
+	if waitingShooter then
+		surface.SetDrawColor(0, 0, 0, 255)
+		surface.DrawRect(0, 0, sw, sh)
+	end
+
+	local hintTarget = (waitingShooter and CurTime() >= startTime + 8.5) and 1 or 0
+	shooterWaitHintAlpha = math.Approach(shooterWaitHintAlpha, hintTarget, FrameTime() * 2)
+	if shooterWaitHintAlpha > 0 then
+		local a = 160 * shooterWaitHintAlpha
+		draw.SimpleText("You will spawn in after the countdown.", "UnconsciousHint", sw / 2, sh / 2 - 10, Color(200, 200, 200, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		draw.SimpleText("Drink water while you wait.", "UnconsciousHint", sw / 2, sh / 2 + 10, Color(200, 200, 200, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+	end
+
 	if shooterSpawnTime > CurTime() then
 		posadd = Lerp(FrameTime() * 5, posadd or 0, startTime + 7.3 < CurTime() and 0 or -sw * 0.4)
 
@@ -257,7 +280,6 @@ function MODE:HUDPaint()
 		draw.SimpleText(text, "ZB_HomicideMedium", (sw * 0.02) - 2 + posaddSWAT, (sh * 0.95) - 2, col, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 	end
 
-	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
 
 	local isShooter = ply:Team() == 0

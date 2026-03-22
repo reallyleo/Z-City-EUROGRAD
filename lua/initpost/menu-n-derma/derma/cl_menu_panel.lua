@@ -1,11 +1,11 @@
 local PANEL = {}
 local curent_panel 
-local red_select = Color(192,0,0)
+local red_select = Color(0,100,255)
 
 local Selects = {
     {Title = "Disconnect", Func = function(luaMenu) RunConsoleCommand("disconnect") end},
     {Title = "Main Menu", Func = function(luaMenu) gui.ActivateGameUI() luaMenu:Close() end},
-    {Title = "Discord", Func = function(luaMenu) luaMenu:Close() gui.OpenURL("https://discord.gg/475EmEdTgH")  end},
+    {Title = "Discord", Func = function(luaMenu) luaMenu:Close() gui.OpenURL("https://discord.gg/SjehbjKFjZ")  end},
     {Title = "Traitor Role",
     GamemodeOnly = true,
     CreatedFunc = function(self, parent, luaMenu)
@@ -79,21 +79,21 @@ local Selects = {
 }
 
 local splasheh = {
-    'LIKE HOMICIDED',
-    'PLUV PLUV PLUVISKI',
-    'LULU IS NOT DEAD | !PLUV',
-    'THE TRAITOR WAS KILLED',
-    'NAB HOMICIDE SERVER',
-    'ALSO TRY MODDED HOMICIDE 2',
-    'HOP ON Z-CITY',
-    'JOHN Z-CITY',
-    ':pluvrare:',
-    'SAW51 IS REAL',
-    'MORE SMALLTOWN',
-    'MORE CLUE2022',
-    'BACKROOMS == CLUE',
-    'HELL IS NEAR',
-    'I WISH YOU GOOD HEALTH, JASON STATHAM'
+    'I MAKE TOMATO, I MAKE TOMORROW, SORRY',
+    'DANTDM',
+    'IM FROZEN MID AIR, HELP MEEEE HELPMP MEEE',
+    'BEHEADED WITH A RUSTY AXE',
+    'IM ALIVE, IM ALIVE, IM ALIVE',
+    'HOP ON EUROGRAD',
+    'JOHN EUROGRAD',
+    'DONT EVEN JOKE LAD',
+    'BOSINN',
+    'HANKSCHRADER',
+    'YOU ARE SO UNFUNNY',
+    'YOURE GOOD BOY',
+    'EASY THERE HOSS',
+    'OH. QUEST-CE QUIILS MONT FAIT',
+    'OK TOMORROW',
 }
 
 --print(string.upper('I wish you good health, Jason Statham'))
@@ -116,20 +116,20 @@ function PANEL:InitializeMarkup()
 	local gm = splasheh[math.random(#splasheh)] .. " | " .. string.NiceName(mapname) 
 
     if hg.PluvTown.Active then
-        local text = "<font=ZC_MM_Title><colour=199,2,2>    </colour>City</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
+        local text = "<font=ZC_MM_Title><colour=0,100,255>    </colour>City EU</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
 
         self.SelectedPluv = table.Random(hg.PluvTown.PluvMats)
 
         return markup.Parse(text)
     end
 
-    local text = "<font=ZC_MM_Title><colour=199,2,2,255>Z</colour>-City</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
+    local text = "<font=ZC_MM_Title><colour=0,100,255,255>Z</colour>-City EU</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
     return markup.Parse(text)
 end
 
-local color_red = Color(255,25,25,45)
+local color_red = Color(0,100,255,45)
 local clr_gray = Color(255,255,255,25)
-local clr_verygray = Color(10,10,19,235)
+local clr_verygray = Color(10,10,19,200)
 
 function PANEL:Init()
     self:SetAlpha(0)
@@ -209,7 +209,7 @@ function PANEL:Init()
     zteam:DockMargin(ScreenScale(10), 0, 0, 0)
     zteam:SetFont("ZCity_Tiny")
     zteam:SetTextColor(clr_gray)
-    zteam:SetText("Authors: uzelezz, Sadsalat, \nMr.Point, Zac90, Deka, Mannytko")
+    zteam:SetText("Authors: uzelezz, Sadsalat, \nMr.Point, Zac90, Deka, Mannytko, Leo")
     zteam:SetContentAlignment(4)
     zteam:SizeToContents()
 end
@@ -222,7 +222,7 @@ local gradient_d = surface.GetTextureID("vgui/gradient-d")
 local gradient_r = surface.GetTextureID("vgui/gradient-u")
 local gradient_l = surface.GetTextureID("vgui/gradient-l")
 
-local clr_1 = Color(102,0,0,35)
+local clr_1 = Color(0,100,255,35)
 function PANEL:Paint(w,h)
     draw.RoundedBox( 0, 0, 0, w, h, self.ColorBG )
     hg.DrawBlur(self, 5)

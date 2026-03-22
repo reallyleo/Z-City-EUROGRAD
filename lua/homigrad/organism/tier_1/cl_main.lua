@@ -1083,3 +1083,23 @@ hook.Add("HG.InputMouseApply","zzzzzzzzzzzzbrain_death",function(tbl)
 
 	return true--]]
 end)
+
+surface.CreateFont("UnconsciousHint", {
+	font = "Bahnschrift",
+	size = 16,
+	weight = 400,
+	antialias = true
+})
+
+local unconsciousHintAlpha = 0
+hook.Add("HUDPaint", "hg_unconscious_hint", function()
+	local ply = lply or LocalPlayer()
+	if not IsValid(ply) then return end
+
+	local org = ply.organism
+	local target = (ply:Alive() and org and org.otrub) and 1 or 0
+	unconsciousHintAlpha = math.Approach(unconsciousHintAlpha, target, FrameTime() * 3)
+	if unconsciousHintAlpha <= 0 then return end
+
+	draw.SimpleText("Type 'bind g fake' in console to get up", "UnconsciousHint", ScrW() / 2, ScrH() - 30, Color(200, 200, 200, 100 * unconsciousHintAlpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+end)

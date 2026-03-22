@@ -29,13 +29,6 @@ surface.CreateFont("UnconsciousDots", {
     antialias = true
 })
 
-surface.CreateFont("UnconsciousHint", {
-    font = "Bahnschrift",
-    size = 16,
-    weight = 400,
-    antialias = true
-})
-
 local ringAlpha = 0
 local lerpBrain = 0
 local lerpShock = 0
@@ -43,7 +36,15 @@ local lerpConsciousness = 0
 local peakShock = 40
 local dotBeat = 0
 
+local hg_unconscious_ring = ConVarExists("hg_unconscious_ring") and GetConVar("hg_unconscious_ring") or CreateClientConVar("hg_unconscious_ring", "1", true, false, "Enable unconscious ring", 0, 1)
+
 hook.Add("HUDPaint", "DrawUnconsciousRing", function()
+    if not hg_unconscious_ring:GetBool() then
+        ringAlpha = 0
+        peakShock = 40
+        return
+    end
+
     local ply = lply or LocalPlayer()
     if not IsValid(ply) or not ply:Alive() then 
         ringAlpha = 0
@@ -92,7 +93,7 @@ hook.Add("HUDPaint", "DrawUnconsciousRing", function()
     local centerX, centerY = scrW / 2, scrH / 2
     
     -- Background dimming
-    surface.SetDrawColor(0, 0, 0, 253 * ringAlpha)
+    surface.SetDrawColor(0, 0, 0, 90 * ringAlpha)
     surface.DrawRect(0, 0, scrW, scrH)
     
     local ringColor = isCritical and Color(200, 0, 0, 255 * ringAlpha) or Color(220, 220, 220, 255 * ringAlpha)
@@ -135,6 +136,4 @@ hook.Add("HUDPaint", "DrawUnconsciousRing", function()
     
     -- Draw text
     draw.SimpleText(dotText, "UnconsciousDots", centerX, centerY, dotColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-    -- Draw the hint at the bottom
-    draw.SimpleText("Type 'bind g fake' in console to get up", "UnconsciousHint", centerX, scrH - 30, Color(200, 200, 200, 100 * ringAlpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 end)

@@ -3,7 +3,7 @@ local MODE = MODE
 MODE.name = "as"
 MODE.PrintName = "Active Shooter"
 
-MODE.LootSpawn = false
+MODE.LootSpawn = true
 MODE.ForBigMaps = false
 MODE.Chance = 0.04
 MODE.AdminOnly = false
@@ -16,6 +16,10 @@ function MODE.GuiltCheck(Attacker, Victim, add, harm, amt)
 end
 
 local swatSpawned = false
+local shooter_masks = {
+	"arctic_balaclava",
+	"bandana"
+}
 
 local swat_weps = {
 	{ "weapon_m4a1", { "holo15", "grip3", "laser4" } },
@@ -60,6 +64,49 @@ end
 util.AddNetworkString("as_start")
 util.AddNetworkString("as_roundend")
 util.AddNetworkString("as_swat_spawn")
+util.AddNetworkString("AS_SetShooterSubrole")
+
+local function AS_ClearShooterWaiting(ply)
+	if not IsValid(ply) then return end
+	ply:SetNWBool("AS_WaitingShooter", false)
+	if IsValid(ply.AS_WaitCam) then
+		ply.AS_WaitCam:Remove()
+	end
+	ply.AS_WaitCam = nil
+	if ply.UnSpectate then
+		ply:UnSpectate()
+	end
+end
+
+local function AS_SetShooterWaiting(ply)
+	if not IsValid(ply) then return end
+	ply:SetNWBool("AS_WaitingShooter", true)
+
+	if IsValid(ply.AS_WaitCam) then
+		ply.AS_WaitCam:Remove()
+	end
+
+	local waitCam = ents.Create("prop_physics")
+	if not IsValid(waitCam) then return end
+	waitCam:SetModel("models/props_junk/PopCan01a.mdl")
+	waitCam:SetPos(Vector(0, 0, -16000))
+	waitCam:SetAngles(angle_zero)
+	waitCam:Spawn()
+	waitCam:SetNoDraw(true)
+	waitCam:SetNotSolid(true)
+	waitCam:SetMoveType(MOVETYPE_NONE)
+	waitCam:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+
+	ply.AS_WaitCam = waitCam
+	ply:Spectate(OBS_MODE_FIXED)
+	ply:SpectateEntity(waitCam)
+end
+
+net.Receive("AS_SetShooterSubrole", function(_, ply)
+	local pref = net.ReadString()
+	if pref ~= "overwatch" and pref ~= "old_reliable" and pref ~= "featherweight" and pref ~= "boom_or_bust" then return end
+	ply.AS_ShooterSubrole = pref
+end)
 
 function MODE:CanLaunch()
 	return true
@@ -113,6 +160,7 @@ function MODE:EndRound()
 		if timer.Exists("AS_ShooterSpawn" .. ply:EntIndex()) then
 			timer.Remove("AS_ShooterSpawn" .. ply:EntIndex())
 		end
+		AS_ClearShooterWaiting(ply)
 	end
 
 	local endround, winnerIndex = zb:CheckWinner(self:CheckAlivePlayers())
@@ -158,8 +206,11 @@ function MODE:GiveEquipment()
 			if ply:Team() == 0 then
 				local entIndex = ply:EntIndex()
 
+				AS_SetShooterWaiting(ply)
+
 				timer.Create("AS_ShooterSpawn" .. entIndex, 55, 1, function()
 					if not IsValid(ply) or ply:Team() == TEAM_SPECTATOR then return end
+					AS_ClearShooterWaiting(ply)
 
 					ply:Spawn()
 					ply:SetSuppressPickupNotices(true)
@@ -168,10 +219,14 @@ function MODE:GiveEquipment()
 					ply:SetupTeam(0)
 					zb.GiveRole(ply, "Active Shooter", Color(200, 40, 40))
 
-					ply.organism.stamina.range = 220
-
-					hg.AddArmor(ply, "ent_armor_vest4")
-					hg.AddArmor(ply, "ent_armor_helmet12")
+					timer.Simple(0, function()
+						if not IsValid(ply) then return end
+						ApplyAppearance(ply, nil, nil, nil, true)
+						local Appearance = ply.CurAppearance or hg.Appearance.GetRandomAppearance()
+						Appearance.AAttachments = { shooter_masks[math.random(#shooter_masks)] }
+						ply:SetNetVar("Accessories", Appearance.AAttachments or "none")
+						ply.CurAppearance = Appearance
+					end)
 
 					local inv = ply:GetNetVar("Inventory", {})
 					inv["Weapons"] = inv["Weapons"] or {}
@@ -180,26 +235,80 @@ function MODE:GiveEquipment()
 					ply:SetNetVar("Inventory", inv)
 
 					local hands = ply:Give("weapon_hands_sh")
-					ply:Give("hg_flashlight")
 
-					local pistol = ply:Give("weapon_tec9")
-					if IsValid(pistol) and pistol.GetMaxClip1 then
-						ply:GiveAmmo(pistol:GetMaxClip1() * 3, pistol:GetPrimaryAmmoType(), true)
-					end
+					local subrole = table.Random({ "overwatch", "old_reliable", "featherweight", "boom_or_bust" })
+					ply.AS_ShooterSubrole = subrole
+					if subrole == "overwatch" then
+						ply.organism.stamina.range = 150
+						hg.AddArmor(ply, "ent_armor_vest16")
+						hg.AddArmor(ply, "ent_armor_mask2")
+						hg.AddArmor(ply, "ent_armor_helmet3")
 
-					local shotgun = ply:Give("weapon_ithaca37")
-					if IsValid(shotgun) and shotgun.GetMaxClip1 then
-						ply:GiveAmmo(shotgun:GetMaxClip1() * 3, shotgun:GetPrimaryAmmoType(), true)
-						ply:SelectWeapon(shotgun:GetClass())
+						local primary = ply:Give("weapon_rpk")
+						if IsValid(primary) and primary.GetMaxClip1 then
+							ply:GiveAmmo(primary:GetMaxClip1() * 2, primary:GetPrimaryAmmoType(), true)
+							ply:SelectWeapon(primary:GetClass())
+						end
+
+						local pistol = ply:Give("weapon_makarov")
+						if IsValid(pistol) and pistol.GetMaxClip1 then
+							ply:GiveAmmo(pistol:GetMaxClip1() * 2, pistol:GetPrimaryAmmoType(), true)
+						end
+
+						ply:Give("weapon_bandage_sh")
+						ply:Give("weapon_melee")
+					elseif subrole == "featherweight" then
+						ply.organism.stamina.range = 280
+
+						local pistol = ply:Give("weapon_glock18c")
+						if IsValid(pistol) and pistol.GetMaxClip1 then
+							hg.AddAttachmentForce(ply, pistol, { "laser2", "supressor4" })
+							ply:GiveAmmo(pistol:GetMaxClip1() * 6, pistol:GetPrimaryAmmoType(), true)
+						end
+
+						ply:Give("weapon_bandage_sh")
+						ply:Give("weapon_melee")
+					elseif subrole == "boom_or_bust" then
+						ply.organism.stamina.range = 175
+						hg.AddArmor(ply, "ent_armor_vest18")
+
+						local pistol = ply:Give("weapon_glock18c")
+						if IsValid(pistol) and pistol.GetMaxClip1 then
+							ply:GiveAmmo(pistol:GetMaxClip1() * 3, pistol:GetPrimaryAmmoType(), true)
+							ply:SelectWeapon(pistol:GetClass())
+						else
+							ply:SelectWeapon("weapon_hands_sh")
+						end
+
+						ply:Give("weapon_claymore")
+						ply:Give("weapon_hg_slam")
+						ply:Give("weapon_hg_pipebomb_tpik")
+						ply:Give("weapon_bandage_sh")
+						ply:Give("weapon_breachcharge")
+						ply:Give("weapon_bayonet")
 					else
-						ply:SelectWeapon("weapon_hands_sh")
-					end
+						ply.organism.stamina.range = 220
+						hg.AddArmor(ply, "ent_armor_vest4")
+						hg.AddArmor(ply, "ent_armor_helmet12")
 
-					ply:Give("weapon_hg_molotov_tpik")
-					ply:Give("weapon_hg_pipebomb_tpik")
-					ply:Give("weapon_bandage_sh")
-					ply:Give("weapon_medkit_sh")
-					ply:Give("weapon_melee")
+						local pistol = ply:Give("weapon_m1911")
+						if IsValid(pistol) and pistol.GetMaxClip1 then
+							ply:GiveAmmo(pistol:GetMaxClip1() * 3, pistol:GetPrimaryAmmoType(), true)
+						end
+
+						local shotgun = ply:Give("weapon_remington870")
+						if IsValid(shotgun) and shotgun.GetMaxClip1 then
+							ply:GiveAmmo(shotgun:GetMaxClip1() * 3, shotgun:GetPrimaryAmmoType(), true)
+							ply:SelectWeapon(shotgun:GetClass())
+						else
+							ply:SelectWeapon("weapon_hands_sh")
+						end
+
+						ply:Give("weapon_hg_pipebomb_tpik")
+						ply:Give("weapon_bandage_sh")
+						ply:Give("weapon_medkit_sh")
+						ply:Give("weapon_melee")
+					end
 
 					ply:SetSuppressPickupNotices(false)
 					ply.noSound = false
@@ -220,7 +329,6 @@ function MODE:GiveEquipment()
 
 				local hands = ply:Give("weapon_hands_sh")
 				ply:SelectWeapon("weapon_hands_sh")
-				ply:Give("hg_flashlight")
 
 				ply:SetSuppressPickupNotices(false)
 				ply.noSound = false

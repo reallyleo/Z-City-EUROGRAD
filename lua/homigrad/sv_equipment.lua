@@ -264,7 +264,7 @@ local function protec(org, bone, dmg, dmgInfo, placement, armor, scale, scalepro
 	dmgInfo:SetDamageType(DMG_CLUB)
 	dmgInfo:SetDamageForce(dmgInfo:GetDamageForce() * 0.4)
 	dmgInfo:ScaleDamage(0.2)
-
+	
 	return 0.9
 end
 
@@ -311,86 +311,191 @@ end
 hg.ArmorEffect = ArmorEffect
 hg.ArmorEffectEx = ArmorEffectEx
 
-hg.organism = hg.organism or {}
-hg.organism.input_list = hg.organism.input_list or {}
-hg.organism.input_list.vest1 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest1", 0.6, 0.6, false, ...)
-	return protect
-end
+	hg.organism = hg.organism or {}
+	hg.organism.input_list = hg.organism.input_list or {}
+	hg.organism.input_list.vest1 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest1", 0.6, 0.6, false, ...)
+		return protect
+	end
 
-hg.organism.input_list.helmet1 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet1", 1, 0.6, true, ...)
-	return protect
-end
+	hg.organism.input_list.helmet1 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet1", 1, 0.6, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.helmet2 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet2", 1, 0.3, true, ...)
-	return protect
-end
+	hg.organism.input_list.helmet2 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet2", 1, 0.3, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.helmet3 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet3", 1, 0.25, true, ...)
-	return protect
-end
+	hg.organism.input_list.helmet3 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet3", 1, 0.25, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.helmet5 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet5", 1, 0.4, true, ...)
-	return protect
-end
+	hg.organism.input_list.helmet5 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet5", 1, 0.4, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.helmet6 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet6", 1, 0.5, true, ...)
-	return protect
-end
+	hg.organism.input_list.helmet6 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet6", 1, 0.5, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.helmet7 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet7", 1, 0.4, true, ...)
-	return protect
-end
+	hg.organism.input_list.helmet7 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet7", 1, 0.4, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.vest2 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest2", 1, 0.3, false, ...)
-	return protect
-end
+	hg.organism.input_list.helmet8 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet8", 1, 0.6, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.vest3 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest3", 0.8, 0.3, false, ...)
-	return protect
-end
+	hg.organism.input_list.helmet9 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet9", 1, 0.6, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.vest4 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest4", 0.8, 0.3, false, ...)
-	return protect
-end
+	hg.organism.input_list.helmet10 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet10", 1, 0.6, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.mask1 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "face", "mask1", 1, 0.9, true, ...)
-	return protect
-end
+	hg.organism.input_list.helmet11 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet11", 1, 0.6, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.mask3 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "face", "mask3", 0.95, 0.92, true, ...)
-	return protect
-end
+	hg.organism.input_list.helmet12 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet12", 1, 0.6, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.vest5 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest5", 0.8, 0.5, false, ...)
-	return protect
-end
-hg.organism.input_list.vest6 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest6", 0.8, 0.4, false, ...)
-	return protect
-end
+	hg.organism.input_list.helmet13 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet13", 1, 0.6, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.vest7 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest7", 0.8, 0.5, false, ...)
-	return protect
-end
+	hg.organism.input_list.helmet14 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet14", 1, 0.6, true, ...)
+		return protect
+	end
 
-hg.organism.input_list.vest8 = function(org, bone, dmg, dmgInfo, ...)
-	local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest8", 0.7, 0.4, false, ...)
-	return protect
-end
+	hg.organism.input_list.helmet15 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet15", 1, 0.6, true, ...)
+		return protect
+	end
+
+	hg.organism.input_list.helmet16 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet16", 1, 0.6, true, ...)
+		return protect
+	end
+
+	hg.organism.input_list.helmet17 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "head", "helmet17", 1, 0.6, true, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest2 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest2", 1, 0.3, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest3 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest3", 0.8, 0.3, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest4 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest4", 0.8, 0.3, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.mask1 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "face", "mask1", 1, 0.9, true, ...)
+		return protect
+	end
+
+	hg.organism.input_list.mask3 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "face", "mask3", 1, 1, true, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest5 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest5", 0.8, 0.6, true, ...)
+		return protect
+	end
+	hg.organism.input_list.vest6 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest6", 0.8, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest7 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest7", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest8 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest8", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest9 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest9", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest10 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest10", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest11 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest11", 0.7, 0.4, false, ...)
+		return protect
+	end
+	
+	hg.organism.input_list.vest12 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest12", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest13 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest13", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest14 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest14", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest15 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest15", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest16 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest16", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest17 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest17", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest18 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest18", 0.7, 0.4, false, ...)
+		return protect
+	end
+
+	hg.organism.input_list.vest19 = function(org, bone, dmg, dmgInfo, ...)
+		local protect = protec(org, bone, dmg, dmgInfo, "torso", "vest19", 0.7, 0.4, false, ...)
+		return protect
+	end
 -------------------------------------------------------------------
 
 -- Gordon's armor
@@ -520,9 +625,3 @@ hg.organism.input_list.protovisor = function(org, bone, dmg, dmgInfo, ...)
 	//dmgInfo:GetAttacker():ChatPrint(tostring(org.owner.armors_health["protovisor"]))
 	return protect
 end
-
-hook.Add("HG_ReplacePhrase", "MaskMuffed", function(ply, phrase, muffed, pitch)
-	if IsValid(ply) and ply.armors and ply.armors["face"] == "mask2" then
-		return ply, phrase, true, pitch
-	end
-end)
