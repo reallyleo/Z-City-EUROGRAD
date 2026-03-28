@@ -1555,7 +1555,7 @@ hook.Add( "KeyPress", "snowballs_pickup", function( ply, key )
 end )
 
 local warmingEnts = {
-	["env_sprite"] = 0.1,
+	["env_sprite"] = 0.0,
 	["env_fire"] = 0.5,
 	["vfire"] = function(ent) return ent:GetFireState() end,
 }
