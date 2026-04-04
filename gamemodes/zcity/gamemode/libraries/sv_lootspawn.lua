@@ -184,7 +184,10 @@ function hg.GenerateLoot(ply,ent,func)
 	
 	local should = curRound.LootSpawn
 	
-	if not (should or (curRound.Lootables and IsValid(ent) and curRound.Lootables[ent:GetModel()])) then
+	local lootables = curRound.Lootables
+	local model = IsValid(ent) and ent:GetModel()
+	local isLootableModel = istable(lootables) and isstring(model) and (lootables[model] or lootables[string.lower(model)])
+	if not (should or isLootableModel) then
 		return
 	end
 
@@ -726,5 +729,4 @@ for i = 1,100 do
 		huy.AmmoCount = AmmoCount
 	end
 end--]]
-
 

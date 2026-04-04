@@ -3,11 +3,43 @@ local MODE = MODE
 MODE.name = "as"
 MODE.PrintName = "Active Shooter"
 
-MODE.LootSpawn = true
+MODE.LootSpawn = false
 MODE.ForBigMaps = false
 MODE.Chance = 0.04
 MODE.AdminOnly = false
 MODE.GuiltDisabled = true
+MODE.Lootables = {
+	["models/props_junk/wood_crate001a.mdl"] = true,
+	["models/props_junk/wood_crate001a_damaged.mdl"] = true,
+	["models/props_junk/wood_crate002a.mdl"] = true,
+	["models/props_junk/wood_crate003a.mdl"] = true,
+	["models/items/item_item_crate_dynamic.mdl"] = true,
+	["models/items/item_item_crate.mdl"] = true,
+	["models/props/cs_militia/footlocker01_closed.mdl"] = true,
+	["models/props_junk/cardboard_box001a.mdl"] = true,
+	["models/props_junk/cardboard_box001b.mdl"] = true,
+	["models/props_junk/cardboard_box002a.mdl"] = true,
+	["models/props_junk/cardboard_box002b.mdl"] = true,
+	["models/props_junk/cardboard_box003a.mdl"] = true,
+	["models/props_junk/cardboard_box003b.mdl"] = true,
+	["models/props_junk/cardboard_box004a.mdl"] = true,
+	["models/props_junk/TrashDumpster01a.mdl"] = true,
+}
+
+function MODE:GetLootTable()
+	return {
+		{ 18, "weapon_smallconsumable" },
+		{ 12, "weapon_bigconsumable" },
+		{ 8, "weapon_tourniquet" },
+		{ 8, "weapon_bandage_sh" },
+		{ 6, "weapon_ducttape" },
+		{ 5, "weapon_painkillers" },
+		{ 4, "weapon_bloodbag" },
+		{ 4, "weapon_walkie_talkie" },
+		{ 3, "weapon_bigbandage_sh" },
+		{ 2, "weapon_medkit_sh" },
+	}
+end
 
 MODE.ROUND_TIME = 1200
 
