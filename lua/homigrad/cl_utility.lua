@@ -301,18 +301,21 @@ players : 1 humans, 0 bots (20 max)
 			local shooterdist = tr.StartPos:Distance(eyePos)
 			local mr = math.random(9)
 
-			if shooterdist < 200 and not IsLookingAt(self:GetOwner(),eyePos) then return end
+			if not IsLookingAt(self:GetOwner(),eyePos) then return end
 			local SND = subsonic and "weapons/bullets/fx/subsonic_0" .. mr .. ".wav"
 				or bullet.Damage >= 50 and "cracks/" .. "heavy/heav" .. "_crack_0" .. mr .. ".ogg"
 				or bullet.Damage >= 30 and "cracks/" .. "medium/med" .. "_crack_0" .. mr .. ".ogg"
 				or "cracks/" .. "light/light" .. "_crack_0" .. mr .. ".ogg"
 
 			if dist < 180 then
-				timer.Simple(0.05,function()
-					EmitSound("weapons/bullets/fx/subsonic_0" .. mr .. ".wav", pos - tr.Normal * 25, 0, CHAN_AUTO, 1, 55)
+				timer.Simple(0.02,function()
+					EmitSound("weapons/bullets/fx/subsonic_0" .. mr .. ".wav", pos - tr.Normal * 25, 0, CHAN_ITEM, 1, 155)
 				end)
 				if !subsonic then
-					EmitSound(SND, pos - tr.Normal * 25, 0, CHAN_AUTO, 1, 65)
+					EmitSound(SND, pos - tr.Normal * 25, 0, CHAN_ITEM, 1, 155)
+					EmitSound(SND, pos - tr.Normal * 25, 0, CHAN_WEAPON, 1, 155)
+					EmitSound(SND, pos - tr.Normal * 25, 0, CHAN_REPLACE, 1, 155)
+					EmitSound(SND, pos - tr.Normal * 25, 0, CHAN_BODY, 1, 155)
 				end
 			else return end
 			-- if dist > 120 then return end
@@ -332,8 +335,10 @@ players : 1 humans, 0 bots (20 max)
 
 			local badass = lply.organism and lply.organism.recoilmul or 1
 			local bulletdmg = math.max(bullet.Damage / 15,1)
-			ViewPunch(anguse * badass * bulletdmg)
-			ViewPunch2((anguse * badass * bulletdmg)/-2)
+			if hg_suppression_viewpunch and hg_suppression_viewpunch:GetBool() then
+				ViewPunch(anguse * badass * bulletdmg)
+				ViewPunch2((anguse * badass * bulletdmg)/-2)
+			end
 			Suppress((dist * 45) * badass * bulletdmg)
 		end)
 		-- SIB - Salatis Imersive Base
