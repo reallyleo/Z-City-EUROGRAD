@@ -116,14 +116,12 @@ function PANEL:InitializeMarkup()
 	local gm = splasheh[math.random(#splasheh)] .. " | " .. string.NiceName(mapname) 
 
     if hg.PluvTown.Active then
-        local text = "<font=ZC_MM_Title><colour=0,100,255>    </colour>City EU</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
-
         self.SelectedPluv = table.Random(hg.PluvTown.PluvMats)
-
+        local text = "<font=ZC_MM_Title><colour=0,100,255,255>EURO</colour>PLUV</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
         return markup.Parse(text)
     end
 
-    local text = "<font=ZC_MM_Title><colour=0,100,255,255>Z</colour>-City EU</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
+    local text = "<font=ZC_MM_Title><colour=0,100,255,255>EURO</colour>GRAD</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
     return markup.Parse(text)
 end
 
@@ -153,7 +151,7 @@ function PANEL:Init()
     self.lDock = vgui.Create("DPanel", self)
     local lDock = self.lDock
     lDock:Dock(LEFT)
-    lDock:SetSize(ScrW() / 4, ScrH())
+    lDock:SetSize(ScrW() / 2.5, ScrH())
     lDock:DockMargin(ScreenScale(0), ScreenScaleH(90), ScreenScale(10), ScreenScaleH(90))
     lDock.Paint = function(this, w, h)
         if hg.PluvTown.Active then
@@ -209,7 +207,7 @@ function PANEL:Init()
     zteam:DockMargin(ScreenScale(10), 0, 0, 0)
     zteam:SetFont("ZCity_Tiny")
     zteam:SetTextColor(clr_gray)
-    zteam:SetText("Authors: uzelezz, Sadsalat, \nMr.Point, Zac90, Deka, Mannytko, Leo")
+    zteam:SetText("Authors: uzelezz, Sadsalat, \nMr.Point, Zac90, Deka, Mannytko and Leo")
     zteam:SetContentAlignment(4)
     zteam:SizeToContents()
 end
