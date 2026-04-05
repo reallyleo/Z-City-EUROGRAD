@@ -180,7 +180,7 @@ hook.Add("HomigradDamage", "GuiltReg", function(ply, dmgInfo, hitgroup, ent, har
 
     local rnd, cround = CurrentRound()
     
-    if rnd.GuiltDisabled or GetConVar("zb_dev"):GetBool() then return end
+    if rnd.GuiltDisabled or zb.KarmaDisabled or GetConVar("zb_dev"):GetBool() then return end
 
     if Attacker == Victim then return end
 
@@ -399,16 +399,126 @@ net.Receive("get_karma",function(len, ply)
     net.Send(ply)
 end)
 
-concommand.Add("hg_setkarma",function(ply,cmd,args)
-    if not ply:IsAdmin() then return end
+local function resolveTarget(arg)
+    if not arg then return nil, "No target specified." end
+    local upper = string.upper(arg)
     
-    local lenargs = #args
-    local newply = player.GetListByName(lenargs > 1 and args[1] or ply:Name())[1]
+    -- Try UserID
+    local uid = tonumber(arg)
+    if uid and uid < 32768 then
+        local p = Player(uid)
+        if IsValid(p) then return p end
+    end
+    
+    -- Try SteamID64
+    if #arg == 17 and string.StartWith(arg, "7656119") then
+        for _, p in player.Iterator() do
+            if p:SteamID64() == arg then return p end
+        end
+    end
+    
+    -- Try SteamID
+    if string.find(upper, "STEAM_0:[0-1]:%d+") then
+        for _, p in player.Iterator() do
+            if p:SteamID() == upper then return p end
+        end
+    end
+    
+    -- Try Name
+    local target = nil
+    local argLower = string.lower(arg)
+    for _, p in player.Iterator() do
+        if string.find(string.lower(p:Nick()), argLower, 1, true) then
+            if target then return nil, "Multiple players found with that name!" end
+            target = p
+        end
+    end
+    
+    if target then return target end
+    return nil, "Player not found."
+end
 
-    newply.Karma = tonumber(lenargs > 1 and args[2] or args[1])
-    newply:SetNetVar("Karma",ply.Karma)
-    //newply:guilt_SetValue( ply.Karma or 100 )
+concommand.Add("hg_setkarma", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsAdmin() then return end
+    
+    if #args < 1 then
+        if IsValid(ply) then ply:ChatPrint("Usage: hg_setkarma <player> <number>") else print("Usage: hg_setkarma <player> <number>") end
+        return
+    end
+
+    local target, err = resolveTarget(args[1])
+    if not IsValid(target) then
+        if IsValid(ply) then ply:ChatPrint(err or "Player not found.") else print(err or "Player not found.") end
+        return
+    end
+
+    local karma = tonumber(args[2] or 100)
+    karma = math.Clamp(karma, -60, zb.MaxKarma)
+
+    target.Karma = karma
+    target:SetNetVar("Karma", karma)
+    target:guilt_SetValue(karma)
+
+    local msg = "Set karma for " .. target:Nick() .. " to " .. karma
+    if IsValid(ply) then ply:ChatPrint(msg) else print(msg) end
 end)
+
+concommand.Add("hg_resetkarma", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsAdmin() then return end
+    
+    if args[1] == "*" or args[1] == "all" then
+        for _, p in player.Iterator() do
+            p.Karma = 100
+            p:SetNetVar("Karma", 100)
+            p:guilt_SetValue(100)
+        end
+        local msg = "Reset karma for ALL players."
+        if IsValid(ply) then ply:ChatPrint(msg) else print(msg) end
+        return
+    end
+
+    if #args < 1 then
+        if IsValid(ply) then ply:ChatPrint("Usage: hg_resetkarma <player|all|*>") else print("Usage: hg_resetkarma <player|all|*>") end
+        return
+    end
+
+    local target, err = resolveTarget(args[1])
+    if not IsValid(target) then
+        if IsValid(ply) then ply:ChatPrint(err or "Player not found.") else print(err or "Player not found.") end
+        return
+    end
+
+    target.Karma = 100
+    target:SetNetVar("Karma", 100)
+    target:guilt_SetValue(100)
+
+    local msg = "Reset karma for " .. target:Nick() .. " to 100."
+    if IsValid(ply) then ply:ChatPrint(msg) else print(msg) end
+end)
+
+zb.KarmaDisabled = false
+concommand.Add("hg_disablekarma", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsAdmin() then return end
+    
+    zb.KarmaDisabled = !zb.KarmaDisabled
+    local msg = "Karma system " .. (zb.KarmaDisabled and "DISABLED" or "ENABLED") .. " globally."
+    PrintMessage(HUD_PRINTTALK, msg)
+end)
+
+-- Register with ! commands if available
+if COMMANDS then
+    COMMANDS.hg_setkarma = {function(ply, args)
+        RunConsoleCommand("hg_setkarma", unpack(args))
+    end, 1, "<player> <number>"}
+
+    COMMANDS.hg_resetkarma = {function(ply, args)
+        RunConsoleCommand("hg_resetkarma", unpack(args))
+    end, 1, "<player|all|*>"}
+
+    COMMANDS.hg_disablekarma = {function(ply, args)
+        RunConsoleCommand("hg_disablekarma")
+    end, 1}
+end
 
 util.AddNetworkString("open_guilt_menu")
 util.AddNetworkString("forgive_player")
