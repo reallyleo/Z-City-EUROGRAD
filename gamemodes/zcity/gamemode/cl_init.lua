@@ -110,7 +110,7 @@ hook.Add("HUDPaint","FUCKINGSAMENAMEUSEDINHOOKFUCKME",function()
 	
 	surface.SetFont("HomigradFont")
 	surface.SetTextColor(255, 255, 255, 255)
-	local txt = "Spectating player: "..spect:Name()
+	local txt = "Spectating player: "..(spect:SteamName() or spect:Name())
 	local w, h = surface.GetTextSize(txt)
 	surface.SetTextPos(ScrW() / 2 - w / 2, ScrH() / 8 * 7)
 	surface.DrawText(txt)
@@ -421,8 +421,8 @@ hook.Add("InitPostEntity", "furryhuy", function()
 end)
 
 local colGray = Color(122,122,122,255)
-local colBlue = Color(130,10,10)
-local colBlueUp = Color(160,30,30)
+local colBlue = Color(0, 80, 200, 255)
+local colBlueUp = Color(0, 100, 255, 255)
 local col = Color(255,255,255,255)
 
 local colSpect1 = Color(75,75,75,255)
@@ -528,7 +528,7 @@ function GM:ScoreboardShow()
 	muteallbut:SetText("Mute all")
 	
 	muteallbut.Paint = function(self,w,h)
-		surface.SetDrawColor( not hg.muteall and 255 or 0, hg.muteall and 255 or 0, 0, 128)
+		surface.SetDrawColor( 0, 100, 255, 128)
         surface.DrawOutlinedRect( 0, 0, w, h, 2.5 )
 	end
 
@@ -561,7 +561,7 @@ function GM:ScoreboardShow()
 	mutespectbut:SetText("Mute spectators")
 	
 	mutespectbut.Paint = function(self,w,h)
-		surface.SetDrawColor( not hg.mutespect and 255 or 0, hg.mutespect and 255 or 0, 0, 128)
+		surface.SetDrawColor( 0, 100, 255, 128)
         surface.DrawOutlinedRect( 0, 0, w, h, 2.5 )
 	end
 

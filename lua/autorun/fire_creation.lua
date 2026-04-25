@@ -873,7 +873,7 @@ if CLIENT then
 		local attach, attachPos
 		if !isEntity then
 			attach = game.GetWorld()
-			attachPos = follow
+			attachPos = follow or Vector(0, 0, 0)
 		else
 			attach = follow
 			attachPos = Vector()

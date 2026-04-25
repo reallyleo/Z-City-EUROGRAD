@@ -3,45 +3,39 @@ local MODE = MODE
 MODE.name = "as"
 MODE.PrintName = "Active Shooter"
 
-MODE.LootSpawn = false
+MODE.LootSpawn = true
+MODE.LootOnTime = true
+MODE.noBoxes = true
 MODE.ForBigMaps = false
-MODE.Chance = 0.04
+MODE.Chance = 0.06
+MODE.LootDivTime = 500
 MODE.AdminOnly = false
 MODE.GuiltDisabled = true
-MODE.Lootables = {
-	["models/props_junk/wood_crate001a.mdl"] = true,
-	["models/props_junk/wood_crate001a_damaged.mdl"] = true,
-	["models/props_junk/wood_crate002a.mdl"] = true,
-	["models/props_junk/wood_crate003a.mdl"] = true,
-	["models/items/item_item_crate_dynamic.mdl"] = true,
-	["models/items/item_item_crate.mdl"] = true,
-	["models/props/cs_militia/footlocker01_closed.mdl"] = true,
-	["models/props_junk/cardboard_box001a.mdl"] = true,
-	["models/props_junk/cardboard_box001b.mdl"] = true,
-	["models/props_junk/cardboard_box002a.mdl"] = true,
-	["models/props_junk/cardboard_box002b.mdl"] = true,
-	["models/props_junk/cardboard_box003a.mdl"] = true,
-	["models/props_junk/cardboard_box003b.mdl"] = true,
-	["models/props_junk/cardboard_box004a.mdl"] = true,
-	["models/props_junk/TrashDumpster01a.mdl"] = true,
-}
+
+MODE.ROUND_TIME = 1200
 
 function MODE:GetLootTable()
 	return {
-		{ 18, "weapon_smallconsumable" },
+		{ 15, "weapon_smallconsumable" },
 		{ 12, "weapon_bigconsumable" },
 		{ 8, "weapon_tourniquet" },
 		{ 8, "weapon_bandage_sh" },
-		{ 6, "weapon_ducttape" },
-		{ 5, "weapon_painkillers" },
-		{ 4, "weapon_bloodbag" },
+		{ 7, "weapon_ducttape" },
+		{ 6, "weapon_painkillers" },
+		{ 5, "weapon_bloodbag" },
 		{ 4, "weapon_walkie_talkie" },
+		{ 3, "hg_flashlight" },
 		{ 3, "weapon_bigbandage_sh" },
 		{ 2, "weapon_medkit_sh" },
+		{ 1, "weapon_matches" },
+		{ 0.2, "weapon_morphine" },
+		{ 0.2, "weapon_mannitol" },
+		{ 0.5, "weapon_naloxone" },
+		{ 0.1, "weapon_fentanyl" },
+		{ 0.9, "weapon_betablock" },
+		{ 0.5, "weapon_adrenaline" }
 	}
 end
-
-MODE.ROUND_TIME = 1200
 
 function MODE.GuiltCheck(Attacker, Victim, add, harm, amt)
 	return 1, true
@@ -51,6 +45,16 @@ local swatSpawned = false
 local shooter_masks = {
 	"arctic_balaclava",
 	"bandana"
+}
+
+local russian_names = {
+	"Artyom", "Boris", "Dmitry", "Evgeny", "Fedor", "Grigory", "Igor", "Ivan", "Kirill", "Leonid", "Mikhail", "Nikolai", "Oleg", "Pavel", "Ruslan", "Sergei", "Timofey", "Vasily", "Yury", "Zakhar",
+	"Viktor", "Andrey", "Stanislav", "Alexey", "Konstantin", "Vladimir", "Yaroslav", "Svyatoslav", "Vyacheslav", "Gennady"
+}
+
+local russian_surnames = {
+	"Ivanov", "Smirnov", "Kuznetsov", "Popov", "Vasiliev", "Petrov", "Sokolov", "Mikhailov", "Novikov", "Fedorov", "Morozov", "Volkov", "Alexeev", "Lebedev", "Semenov", "Egorov", "Pavlov", "Kozlov", "Stepanov", "Nikolaev",
+	"Orlov", "Andreev", "Makarov", "Nikitin", "Zakharov", "Zaitsev", "Soloviev", "Borisov", "Yakovlev", "Vorobiev"
 }
 
 local swat_weps = {
@@ -78,13 +82,25 @@ function MODE:AssignTeams()
 	local players = player.GetAll()
 	table.Shuffle(players)
 
-	local shooterAssigned = false
+	local player_count = 0
+	for _, ply in ipairs(players) do
+		if ply:Team() ~= TEAM_SPECTATOR then
+			player_count = player_count + 1
+		end
+	end
+
+	local traitors_needed = 1
+	local homicide_traitoramount = GetConVar("homicide_traitoramount")
+	if homicide_traitoramount then
+		traitors_needed = math.min(player_count - 1, homicide_traitoramount:GetInt())
+	end
+	traitors_needed = math.max(1, traitors_needed)
 
 	for _, ply in ipairs(players) do
 		if ply:Team() == TEAM_SPECTATOR then continue end
 
-		if not shooterAssigned then
-			shooterAssigned = true
+		if traitors_needed > 0 then
+			traitors_needed = traitors_needed - 1
 			ply:SetTeam(0)
 			self.Shooter = ply
 		else
@@ -169,6 +185,7 @@ function MODE:CheckAlivePlayers()
 	for _, ply in player.Iterator() do
 		if not ply:Alive() then continue end
 		if ply.organism and ply.organism.incapacitated then continue end
+		if ply.organism and ply.organism.handcuffed then continue end
 
 		if ply:Team() == 0 then
 			table.insert(activeShooters, ply)
@@ -251,11 +268,15 @@ function MODE:GiveEquipment()
 					ply:SetupTeam(0)
 					zb.GiveRole(ply, "Active Shooter", Color(200, 40, 40))
 
+					local name = table.Random(russian_names) .. " " .. table.Random(russian_surnames)
+					ply:SetNWString("RussianName", name)
+					ply:SetNetVar("RussianName", name)
+
 					timer.Simple(0, function()
 						if not IsValid(ply) then return end
 						ApplyAppearance(ply, nil, nil, nil, true)
 						local Appearance = ply.CurAppearance or hg.Appearance.GetRandomAppearance()
-						Appearance.AAttachments = { shooter_masks[math.random(#shooter_masks)] }
+						Appearance.AAttachments = { shooter_masks[math.random(#shooter_masks)], "armband_red" }
 						ply:SetNetVar("Accessories", Appearance.AAttachments or "none")
 						ply.CurAppearance = Appearance
 					end)
@@ -270,6 +291,14 @@ function MODE:GiveEquipment()
 
 					local subrole = table.Random({ "overwatch", "old_reliable", "featherweight", "boom_or_bust" })
 					ply.AS_ShooterSubrole = subrole
+
+					local radio = ply:Give("weapon_walkie_talkie")
+					if IsValid(radio) then
+						radio:AdjustFrequency(100.2 - radio.Frequency)
+						radio.isOn = true
+						radio:SetIsOn(true)
+					end
+
 					if subrole == "overwatch" then
 						ply.organism.stamina.range = 150
 						hg.AddArmor(ply, "ent_armor_vest16")
@@ -353,11 +382,6 @@ function MODE:GiveEquipment()
 
 				ply:SetupTeam(1)
 				zb.GiveRole(ply, "Civilian", Color(40, 160, 40))
-
-				local inv = ply:GetNetVar("Inventory", {})
-				inv["Weapons"] = inv["Weapons"] or {}
-				inv["Weapons"]["hg_flashlight"] = true
-				ply:SetNetVar("Inventory", inv)
 
 				local hands = ply:Give("weapon_hands_sh")
 				ply:SelectWeapon("weapon_hands_sh")

@@ -1,4 +1,4 @@
-﻿if SERVER then AddCSLuaFile() end
+if SERVER then AddCSLuaFile() end
 SWEP.Base = "weapon_melee"
 SWEP.PrintName = "Fire Extinguisher"
 SWEP.Instructions = "This is a hand-held cylindrical pressure vessel containing an agent that can be discharged to extinguish a fire.\n\nLMB to attack.\nR to change mode.\nRMB to block."
@@ -137,7 +137,7 @@ function SWEP:CanSecondaryAttack()
         if not IsValid(self.particleeffect) then
             local att = self:GetAttachment(1)
             local tr = hg.eyeTrace(self:GetOwner())
-            self.particleeffect = CreateParticleSystem(self:GetWM(), "NMRIH_EXTINGUISHER", PATTACH_POINT_FOLLOW, 1)
+            self.particleeffect = CreateParticleSystem(self:GetWM(), "NMRIH_EXTINGUISHER", PATTACH_POINT_FOLLOW, 1, Vector(0, 0, 0))
             self.particleeffect:StartEmission()
         else
             if self.particleeffect:IsFinished() then
