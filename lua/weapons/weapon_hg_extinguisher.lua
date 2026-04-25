@@ -137,7 +137,7 @@ function SWEP:CanSecondaryAttack()
         if not IsValid(self.particleeffect) then
             local att = self:GetAttachment(1)
             local tr = hg.eyeTrace(self:GetOwner())
-            self.particleeffect = CreateParticleSystem(self:GetWM(), "NMRIH_EXTINGUISHER", PATTACH_POINT_FOLLOW, 1, Vector(0, 0, 0))
+            self.particleeffect = CreateParticleSystem(self:GetWM(), "NMRIH_EXTINGUISHER", PATTACH_POINT_FOLLOW, 1)
             self.particleeffect:StartEmission()
         else
             if self.particleeffect:IsFinished() then

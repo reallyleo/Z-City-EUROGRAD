@@ -62,7 +62,7 @@ hook.Add("RenderScreenspaceEffects", "berserkEffect", function()
 
 		hg.berserkStartTime = SysTime()
 
-		local part = CreateParticleSystem( LocalPlayer(), "[2]sparkle1", PATTACH_POINT_FOLLOW, 1, Vector(0, 0, 0))
+		local part = CreateParticleSystem( LocalPlayer(), "[2]sparkle1", PATTACH_POINT_FOLLOW, 1)
 
 		hg.currentNotification = nil
 		hg.notifications = {}

@@ -259,6 +259,6 @@ function SWEP:DrawPostPostModel()
 		Spark:SetNormal(vector_up)
 		util.Effect("eff_jack_hmcd_fuzeburn",Spark,true,true)
 		self.sparkThink = CurTime() + 0.1
-		--self.fire = CreateParticleSystem( self:GetWM(), "vFire_Flames_Tiny", PATTACH_POINT_FOLLOW, 2, Vector(0, 0, 0) )
+		--self.fire = CreateParticleSystem( self:GetWM(), "vFire_Flames_Tiny", PATTACH_POINT_FOLLOW,2 )
 	end
 end

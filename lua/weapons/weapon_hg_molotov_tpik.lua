@@ -230,7 +230,7 @@ SWEP.CoolDown = 0
 function SWEP:DrawPostPostModel()
 	--PrintBones(self:GetWM())
 	if self.Burn and not IsValid(self.fire) then
-		self.fire = CreateParticleSystem( self:GetWM(), "vFire_Flames_Tiny", PATTACH_POINT_FOLLOW, 2, Vector(0, 0, 0) )
+		self.fire = CreateParticleSystem( self:GetWM(), "vFire_Flames_Tiny", PATTACH_POINT_FOLLOW,2 )
 	elseif not self:GetShowGrenade() and IsValid(self.fire) then
 		self.fire:StopEmissionAndDestroyImmediately()
 		self.Burn = false
