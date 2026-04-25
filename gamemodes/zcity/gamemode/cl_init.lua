@@ -102,6 +102,32 @@ local keydownattack
 local keydownattack2
 local keydownreload
 
+local steamNameCache = steamNameCache or {}
+local steamNameRequested = steamNameRequested or {}
+
+local function GetSteamPersonaName(ply)
+	if not IsValid(ply) or not ply.IsPlayer or not ply:IsPlayer() then return nil end
+
+	local sid64 = ply:SteamID64()
+	if not sid64 or sid64 == "" or sid64 == "0" then
+		return ply:SteamName() or ply:Nick() or ply:Name()
+	end
+
+	local cached = steamNameCache[sid64]
+	if cached and cached ~= "" then return cached end
+
+	if steamworks and steamworks.RequestPlayerInfo and not steamNameRequested[sid64] then
+		steamNameRequested[sid64] = true
+		steamworks.RequestPlayerInfo(sid64, function(name)
+			if name and name ~= "" then
+				steamNameCache[sid64] = name
+			end
+		end)
+	end
+
+	return ply:SteamName() or ply:Nick() or ply:Name()
+end
+
 hook.Add("HUDPaint","FUCKINGSAMENAMEUSEDINHOOKFUCKME",function()
     if LocalPlayer():Alive() then return end
 	local spect = LocalPlayer():GetNWEntity("spect")
@@ -110,7 +136,7 @@ hook.Add("HUDPaint","FUCKINGSAMENAMEUSEDINHOOKFUCKME",function()
 	
 	surface.SetFont("HomigradFont")
 	surface.SetTextColor(255, 255, 255, 255)
-	local txt = "Spectating player: "..(spect:SteamName() or spect:Name())
+	local txt = "Spectating player: "..(GetSteamPersonaName(spect) or spect:Nick() or spect:Name())
 	local w, h = surface.GetTextSize(txt)
 	surface.SetTextPos(ScrW() / 2 - w / 2, ScrH() / 8 * 7)
 	surface.DrawText(txt)

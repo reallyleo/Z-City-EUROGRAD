@@ -276,7 +276,7 @@ function MODE:GiveEquipment()
 						if not IsValid(ply) then return end
 						ApplyAppearance(ply, nil, nil, nil, true)
 						local Appearance = ply.CurAppearance or hg.Appearance.GetRandomAppearance()
-						Appearance.AAttachments = { shooter_masks[math.random(#shooter_masks)], "armband_red" }
+						Appearance.AAttachments = { shooter_masks[math.random(#shooter_masks)], "terrorist_band" }
 						ply:SetNetVar("Accessories", Appearance.AAttachments or "none")
 						ply.CurAppearance = Appearance
 					end)
