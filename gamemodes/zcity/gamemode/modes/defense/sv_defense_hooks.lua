@@ -168,11 +168,7 @@ hook.Add("EntityRemoved", "DefenseNPCRemoved", function(ent)
                     MODE:EndWave()
                     
                     if MODE.Wave < MODE.TotalWaves then
-                        timer.Simple(1, function()
-                            if type(MODE.StartNewWave) == "function" then
-                                MODE:StartNewWave()
-                            end
-                        end)
+                        MODE:QueueStartNewWave(1)
                     end
                 end
             end
@@ -265,11 +261,7 @@ hook.Add("OnNPCKilled", "DefenseNPCKilled", function(npc, attacker, inflictor)
                     MODE:EndWave()
                     
                     if MODE.Wave and MODE.TotalWaves and MODE.Wave < MODE.TotalWaves then
-                        timer.Simple(1, function()
-                            if type(MODE.StartNewWave) == "function" then
-                                MODE:StartNewWave()
-                            end
-                        end)
+                        MODE:QueueStartNewWave(1)
                     end
                 end
             end
@@ -314,11 +306,7 @@ hook.Add("EntityTakeDamage", "DefenseZombieDamageTrack", function(ent, dmginfo)
                         MODE:EndWave()
                         
                         if MODE.Wave < MODE.TotalWaves then
-                            timer.Simple(1, function()
-                                if type(MODE.StartNewWave) == "function" then
-                                    MODE:StartNewWave()
-                                end
-                            end)
+                            MODE:QueueStartNewWave(1)
                         end
                     end
                 end
@@ -362,11 +350,7 @@ hook.Add("Think", "DefenseNPCValidityCheck", function()
                 MODE:EndWave()
                 
                 if MODE.Wave < MODE.TotalWaves then
-                    timer.Simple(1, function()
-                        if type(MODE.StartNewWave) == "function" then
-                            MODE:StartNewWave()
-                        end
-                    end)
+                    MODE:QueueStartNewWave(1)
                 end
             end
         end

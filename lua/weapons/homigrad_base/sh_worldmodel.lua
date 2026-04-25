@@ -879,18 +879,26 @@ local string_find = string.find
 
 hook.Add("PostDrawTranslucentRenderables", "huyCock333", function()
 	hg.weapons = hg.weapons or {}
-	for i=1, #hg.weapons do
-		self = hg.weapons[i]
-		if not IsValid(self) then table.remove(hg.weapons,i) continue end
-		if IsValid(self:GetOwner()) and self:GetOwner().GetActiveWeapon and self:GetOwner():GetActiveWeapon() ~= self and self.shouldntDrawHolstered then removeFlashlights(self) continue end
-		if not self.attachments then continue end
-		if not self.lasertoggle then removeFlashlights(self) end
-		if self.attachments.underbarrel and not table_IsEmpty(self.attachments.underbarrel) and string_find(self.attachments.underbarrel[1], "laser") or self.laser then self:DrawLaser() end
+	for i = #hg.weapons, 1, -1 do
+		local wep = hg.weapons[i]
+		if not IsValid(wep) then
+			table.remove(hg.weapons, i)
+			continue
+		end
+		local owner = wep:GetOwner()
+		if IsValid(owner) and owner.GetActiveWeapon and owner:GetActiveWeapon() ~= wep and wep.shouldntDrawHolstered then
+			removeFlashlights(wep)
+			continue
+		end
+		if not wep.attachments then continue end
+		if not wep.lasertoggle then removeFlashlights(wep) end
+		if (wep.attachments.underbarrel and not table_IsEmpty(wep.attachments.underbarrel) and string_find(wep.attachments.underbarrel[1], "laser")) or wep.laser then
+			wep:DrawLaser()
+		end
 	end
 end)
 
 function SWEP:ShouldDrawViewModel()
 	return false
 end
-
 

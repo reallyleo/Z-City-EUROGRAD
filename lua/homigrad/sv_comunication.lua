@@ -18,12 +18,15 @@ local function ChatLogic(output, input, isChat, teamonly, text)
 
 	local chat_dist = chat_dist_normal
 
-	if(IsValid(output) and output.ChatWhisper)then
+	if(output.ChatWhisper)then
 		chat_dist = chat_dist_whisper
 	end
+	local chat_dist_sqr = chat_dist * chat_dist
+	local inputPos = input:GetPos()
+	local outputPos = output:GetPos()
 
 	if output:Alive() and input:Alive() and not output.organism.otrub and not input.organism.otrub and output.organism.o2[1] >= 15 and not output.organism.holdingbreath and input:TestPVS( output ) then
-		if input:GetPos():Distance(output:GetPos()) < chat_dist and not teamonly then
+		if inputPos:DistToSqr(outputPos) < chat_dist_sqr and not teamonly then
 			return true, true
 		else
 			return false
@@ -32,7 +35,7 @@ local function ChatLogic(output, input, isChat, teamonly, text)
 		return true
 	else
 		if not input:Alive() and output:Alive() then 
-			if input:GetPos():Distance(output:GetPos()) < chat_dist and input:TestPVS( output ) and not teamonly then
+			if inputPos:DistToSqr(outputPos) < chat_dist_sqr and input:TestPVS( output ) and not teamonly then
 				return true, true
 			else
 				return false

@@ -135,9 +135,15 @@ local speedupbones = {
 local vecfive = Vector(5,5,5)
 
 local player_GetHumans = player.GetHumans
+local nextHumansCacheAt = 0
 
 hook.Add("Think", "Fake", function()
-	hg.humans_cached = player_GetHumans()
+	local perfStart = HGPerf and HGPerf:Begin() or nil
+	local curTime = CurTime()
+	if curTime >= nextHumansCacheAt then
+		hg.humans_cached = player_GetHumans()
+		nextHumansCacheAt = curTime + 0.2
+	end
 
 	//for ply, ragdoll in pairs(hg.ragdollFake) do
 	for i, ply in player.Iterator() do
@@ -151,8 +157,8 @@ hook.Add("Think", "Fake", function()
 		if torso then
 			local torsopos, ang = ragdoll:GetBonePosition(torso)
 
-			if IsValid(ragdoll.bull) and (ragdoll.bull.lastposset or 0) < CurTime() then
-				ragdoll.bull.lastposset = CurTime() + 0.5
+			if IsValid(ragdoll.bull) and (ragdoll.bull.lastposset or 0) < curTime then
+				ragdoll.bull.lastposset = curTime + 0.5
 				
 				ragdoll.bull:SetPos(torsopos + vector_up * 5)
 				--ragdoll.bull:Remove()
@@ -191,7 +197,7 @@ hook.Add("Think", "Fake", function()
 			hg.SetFreemove(ply, false)
 		end
 
-		if (org.lightstun < CurTime()) and (tracehuy.Hit or ply.FakeRagdoll ~= ragdoll) and org.spine1 < hg.organism.fake_spine1 and org.canmove and ((ply.lastFake and (ply.lastFake) > CurTime()) or ply.FakeRagdoll ~= ragdoll) and !ply.jumpedfake then
+		if (org.lightstun < curTime) and (tracehuy.Hit or ply.FakeRagdoll ~= ragdoll) and org.spine1 < hg.organism.fake_spine1 and org.canmove and ((ply.lastFake and (ply.lastFake) > curTime) or ply.FakeRagdoll ~= ragdoll) and !ply.jumpedfake then
 			local power = 1
 			inmove = true
 			
@@ -206,8 +212,8 @@ hook.Add("Think", "Fake", function()
 					local name = ragdoll:GetBoneName(bone)
 
 					if IsValid(physobj) then
-						local bone_impulse = ply.HitBones and ply.HitBones[bonename] or CurTime()
-						local amt_impulse = (2 - math.Clamp(bone_impulse - CurTime(),0,2)) / 2
+						local bone_impulse = ply.HitBones and ply.HitBones[bonename] or curTime
+						local amt_impulse = (2 - math.Clamp(bone_impulse - curTime,0,2)) / 2
 						
 						local p = {}
 						p.secondstoarrive = 0.01
@@ -319,9 +325,9 @@ hook.Add("Think", "Fake", function()
 
 		local forward = ply:KeyDown(IN_FORWARD)
 		local back = ply:KeyDown(IN_BACK)
-		time = CurTime()
+		time = curTime
 		
-		if ply.organism and ply.organism.wounds and not table.IsEmpty(ply.organism.wounds) and org.canmove and (ply.fakecd and (ply.fakecd + 1) > CurTime()) then
+		if ply.organism and ply.organism.wounds and not table.IsEmpty(ply.organism.wounds) and org.canmove and (ply.fakecd and (ply.fakecd + 1) > curTime) then
 			local tr = {}
 			tr.start = ragdoll:GetPos()
 			tr.endpos = ragdoll:GetPos() - vector_up * 60
@@ -924,6 +930,7 @@ hook.Add("Think", "Fake", function()
 			end
 		end*/
 	end
+	if HGPerf and perfStart then HGPerf:End("fake.control.think", perfStart) end
 end)
 
 hook.Add("PlayerDeath", "homigrad-fake-control", function(ply)

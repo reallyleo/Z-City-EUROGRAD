@@ -163,6 +163,7 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	if not IsValid(self) then return end
 	ply = ply or self:GetOwner()
 	gun = self:GetWeaponEntity()
+	local curTime = CurTime()
 	
 	//if self.drawnlasttime != CurTime() then
 		//self.drawnlasttime = CurTime()
@@ -178,7 +179,7 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	local aimvec = ply:GetAimVector():Angle()
 	local up, right, forward = aimvec:Up(), aimvec:Right(), aimvec:Forward()
 	
-	local cocking = (self:GetNetVar("shootgunReload", 0) > CurTime()) or self.reload
+	local cocking = (self:GetNetVar("shootgunReload", 0) > curTime) or self.reload
 	--print(self:GetNetVar("shootgunReload", 0))
 	local posZoom, angPos = self:GetZoomPos(recoilZoomPos, view, eyePos)
 	
@@ -190,18 +191,18 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	local zooming = self:IsZoom() --and noZoomHelmet
 	--print(zooming)
 	local justzoomed = zooming and !oldzoom
-	lastzoom = (justzoomed or (cocking or self.shot2 == 1)) and CurTime() or lastzoom
+	lastzoom = (justzoomed or (cocking or self.shot2 == 1)) and curTime or lastzoom
 
 	local tta = math.Clamp(self.weight / 4, 0.25, 1) * 0.5
 	if isvector(vellen) then
 		vellen = vellen:Length()
 	end
-	local slowlyZooming = math.Clamp((lastzoom - CurTime() + tta) / tta, inpain and 1 - (0.9 * painmul) or (0.10 * (math.Clamp(vellen / 200 * (ply:Crouching() and 0.5 or 1), 0, 1) * 15 + 1)), 1)
+	local slowlyZooming = math.Clamp((lastzoom - curTime + tta) / tta, inpain and 1 - (0.9 * painmul) or (0.10 * (math.Clamp(vellen / 200 * (ply:Crouching() and 0.5 or 1), 0, 1) * 15 + 1)), 1)
 	
-	if lastPosSelected + 0.1 * (inpain and 0.1 or 1) < CurTime() then
-		lastPosSelected = CurTime()
+	if lastPosSelected + 0.1 * (inpain and 0.1 or 1) < curTime then
+		lastPosSelected = curTime
 		--randomPos = 0.75 * VectorRand(-0.75, 0.75)
-		randomPos = (inpain and 1.5 - (1 * painmul) or 1) * ((lastzoom - CurTime() + tta) < 0 and ply.organism and ply.organism.holdingbreath and 0.25 or 1) * 0.5 * Vector(math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75), math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75), math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75))
+		randomPos = (inpain and 1.5 - (1 * painmul) or 1) * ((lastzoom - curTime + tta) < 0 and ply.organism and ply.organism.holdingbreath and 0.25 or 1) * 0.5 * Vector(math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75), math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75), math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75))
 	end
 
 	randomPosL = LerpFT(0.05 * (inpain and 25 - (24 * painmul) or 1), randomPosL, randomPos)
@@ -230,7 +231,7 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 
 	local posIdle = eyePos
 	local angIdle = eyeAng
-	local zoom = self:IsZoom() and (IsValid(ply.FakeRagdoll) or ((self.lerpaddcloseanim * self.closeanimdis) < 3)) and (self:GetNetVar("shootgunReload", 0) < CurTime())// and (posIdle:IsEqualTol(posZoom,20))))
+	local zoom = zooming and (IsValid(ply.FakeRagdoll) or ((self.lerpaddcloseanim * self.closeanimdis) < 3)) and (self:GetNetVar("shootgunReload", 0) < curTime)// and (posIdle:IsEqualTol(posZoom,20))))
 	
 	--if hg_aiminganim:GetBool() then
 		self.k = Lerp(self.Ergonomics * FrameTime() * 2, self.k or 0, zoom and 1 or 0)
@@ -293,7 +294,7 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	//angIdle:Add(-angle_difference*2)
 	//angZoom:Add(-angle_difference*1)
 
-	local mulhuy = (self:IsPistolHoldType() or self.PistolKinda) and 2 or (((ply.posture == 1 and not self:IsZoom()) or ply.posture == 7 or ply.posture == 8) and 2 or 0.75)
+	local mulhuy = (self:IsPistolHoldType() or self.PistolKinda) and 2 or (((ply.posture == 1 and not zooming) or ply.posture == 7 or ply.posture == 8) and 2 or 0.75)
 	local shit = 0.2 * mulhuy / game.GetTimeScale()
 	local animpos3 = self:GetAnimShoot2(shit, true) / shit
 	local shit2 = (1 / self.weight) * (self.NumBullet or 3) / 3
@@ -328,8 +329,8 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	if type(adr) ~= "number" then adr = 0 end
 
 	local suicVal = 0
-	if ply.suiciding and ply:GetNetVar("suicide_time", CurTime()) < CurTime() then
-		suicVal = (1 - math.max(ply:GetNetVar("suicide_time", CurTime()) + 4 - CurTime(), 0) / 4) * 20
+	if ply.suiciding and ply:GetNetVar("suicide_time", curTime) < curTime then
+		suicVal = (1 - math.max(ply:GetNetVar("suicide_time", curTime) + 4 - curTime, 0) / 4) * 20
 	end
 
 	self.shot = LerpFT(0.1, self.shot or 0, 0)

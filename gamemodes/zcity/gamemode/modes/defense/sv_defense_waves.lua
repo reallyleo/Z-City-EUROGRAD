@@ -229,7 +229,7 @@ function MODE:StartNewWave()
         net.Broadcast()
     elseif self.Wave == self.TotalWaves then
         self.WaveCompleted = true
-        timer.Simple(5, function()
+        self:CreateTimer("defense_endmatch_timer", 5, 1, function()
             if zb and zb.ROUND_STATE == 1 then
                 zb.EndMatch()
             end
@@ -329,11 +329,7 @@ function MODE:SpawnWave()
                         self:EndWave()
 
                         if self.Wave and self.TotalWaves and self.Wave < self.TotalWaves then
-                            timer.Simple(1, function()
-                                if type(self.StartNewWave) == "function" then
-                                    self:StartNewWave()
-                                end
-                            end)
+                            self:QueueStartNewWave(1)
                         end
                     end
                 end
@@ -463,11 +459,7 @@ function MODE:SpawnWave()
                     self:EndWave()
 
                     if self.Wave and self.TotalWaves and self.Wave < self.TotalWaves then
-                        timer.Simple(1, function()
-                            if type(self.StartNewWave) == "function" then
-                                self:StartNewWave()
-                            end
-                        end)
+                        self:QueueStartNewWave(1)
                     end
                 end
             end
@@ -499,11 +491,7 @@ function MODE:OnNPCKilled(npc, attacker, inflictor)
             
 
             if self.Wave and self.TotalWaves and self.Wave < self.TotalWaves then
-                timer.Simple(1, function()
-                    if type(self.StartNewWave) == "function" then
-                        self:StartNewWave()
-                    end
-                end)
+                self:QueueStartNewWave(1)
             end
         end
     end

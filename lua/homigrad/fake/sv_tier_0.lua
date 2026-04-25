@@ -537,7 +537,17 @@ end
 function hg.Fake(ply, huyragdoll, no_freemove, force)
 	ply.switchingseat = nil
 	if ply:GetMoveType() == 0 then return end
-	if ply.InVehicle and ply:InVehicle() and not force then return end
+	local inVehicle = false
+	local getVehicle = ply.GetVehicle
+	if isfunction(getVehicle) then
+		inVehicle = IsValid(getVehicle(ply))
+	else
+		local inVehicleFn = ply.InVehicle
+		if isfunction(inVehicleFn) then
+			inVehicle = inVehicleFn(ply) == true
+		end
+	end
+	if inVehicle and not force then return end
 	if not IsValid(huyragdoll) and (not IsValid(ply) or IsValid(ply.FakeRagdoll) or not (ply:IsPlayer() and ply:Alive())) then return end
 	local ragdoll = IsValid(huyragdoll) and huyragdoll or Ragdoll_Create(ply, true)
 	

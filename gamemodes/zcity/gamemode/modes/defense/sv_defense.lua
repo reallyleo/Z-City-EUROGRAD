@@ -104,6 +104,26 @@ function MODE:IsWaveActive()
     return self.WaveActive
 end
 
+function MODE:IsDefenseRoundContext()
+    local mode = CurrentRound()
+    return mode == self and mode and mode.name == "defense" and (not zb or zb.ROUND_STATE ~= 3)
+end
+
+function MODE:QueueStartNewWave(delay)
+    delay = delay or 1
+    self.StartNewWaveQueueId = (self.StartNewWaveQueueId or 0) + 1
+    local queueId = self.StartNewWaveQueueId
+
+    self:CreateTimer("defense_start_new_wave_deferred", delay, 1, function()
+        if self.StartNewWaveQueueId ~= queueId then return end
+        if not self:IsDefenseRoundContext() then return end
+        if not self.Wave or not self.TotalWaves or self.Wave >= self.TotalWaves then return end
+        if type(self.StartNewWave) == "function" then
+            self:StartNewWave()
+        end
+    end)
+end
+
 function MODE:StartWave()
     self.WaveActive = true
 
@@ -131,7 +151,7 @@ function MODE:EndWave()
     self.WaveCompleted = true
     
 
-    timer.Simple(1, function()
+    self:CreateTimer("defense_post_wave_cleanup", 1, 1, function()
         for _, ent in ents.Iterator() do
             if IsValid(ent) then
                 if ent:GetClass() == "prop_ragdoll" then
@@ -152,7 +172,7 @@ function MODE:EndWave()
     self:OnWaveComplete()
 
     if self.Wave and self.TotalWaves and self.Wave >= self.TotalWaves then
-        timer.Simple(5, function()
+        self:CreateTimer("defense_endmatch_timer", 5, 1, function()
             if zb and zb.ROUND_STATE == 1 then
                 zb.EndMatch()
             end
@@ -353,7 +373,7 @@ function MODE:EndVoting()
 
     self.VoteInProgress = false
     
-    timer.Simple(3, function()
+    self:CreateTimer("defense_start_prep_phase", 3, 1, function()
         net.Start("npc_defense_start")
         net.Broadcast()
         self:StartPrepPhase()
@@ -546,11 +566,7 @@ function MODE:RoundThink()
             self:EndWave()
             
             if self.Wave < self.TotalWaves then
-                timer.Simple(1, function()
-                    if type(self.StartNewWave) == "function" then
-                        self:StartNewWave()
-                    end
-                end)
+                self:QueueStartNewWave(1)
             end
         end
     end
@@ -584,7 +600,15 @@ function MODE:PlayerDeath(ply)
 end
 
 function MODE:CreateTimer(name, delay, repetitions, func)
-    timer.Create(name, delay, repetitions, func)
+    timer.Create(name, delay, repetitions, function(...)
+        if not self:IsDefenseRoundContext() then
+            if timer.Exists(name) then
+                timer.Remove(name)
+            end
+            return
+        end
+        func(...)
+    end)
     table.insert(self.Timers, name) 
 end
 
@@ -675,6 +699,5 @@ net.Receive("defense_change_vote", function(len, ply)
         MODE.VotesChanged = false
     end
 end)
-
 
 

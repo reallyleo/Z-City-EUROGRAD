@@ -114,9 +114,5 @@ net.Receive("defense_admin_wave_skip", function(len, ply)
     end
     
 
-    timer.Simple(2, function()
-        if MODE and MODE.StartNewWave then
-            MODE:StartNewWave()
-        end
-    end)
+    MODE:QueueStartNewWave(2)
 end)

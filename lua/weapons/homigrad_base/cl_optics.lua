@@ -11,7 +11,7 @@ hook.Add("HG.InputMouseApply", "ChangeZoom", function(tbl)
 	if IsAiming(ply) then
 		delta = input.WasMousePressed(MOUSE_WHEEL_UP) and delta + 1 * (FrameTime() / engine.TickInterval()) or input.WasMousePressed(MOUSE_WHEEL_DOWN) and delta - 1 * (FrameTime() / engine.TickInterval()) or delta
 		//tbl.cmd:SetMouseWheel(0)
-		if LocalPlayer():KeyDown(IN_WALK) then
+		if ply:KeyDown(IN_WALK) then
 			delta = delta - tbl.y / 24
 			tbl.y = 0
 		end
@@ -107,6 +107,7 @@ function SWEP:DoRT()
 	
 	if not att then return end
 	if not self.sizeperekrestie then return end
+	local curTime = CurTime()
 	
 	self.isscoping = true
 
@@ -211,10 +212,10 @@ function SWEP:DoRT()
 			end
 		cam.End3D()
 		
-		local cocking = self:GetNetVar("shootgunReload", 0) > CurTime()
+		local cocking = self:GetNetVar("shootgunReload", 0) > curTime
 		
 		if cocking then
-			local val = (CurTime() - self:GetNetVar("shootgunReload", 0)) * 1024
+			local val = (curTime - self:GetNetVar("shootgunReload", 0)) * 1024
 			--x = x + val
 			--diffa[1] = diffa[1] - val
 			--y = y - 0
@@ -244,8 +245,8 @@ function SWEP:DoRT()
 			surface.DrawTexturedRectRotatedHuy(0, 0, blackout * rtsize / 512 * 2 + 512, blackout * rtsize / 512 * 2 + 512, 0, (ScrH() - y / (scrh / ScrH()) - rtsize / 2) * distMul * 1 + rtsize / 2, (ScrW() - x / (scrw / ScrW()) - rtsize / 2) * distMul * 1 + rtsize / 2)
 			surface.SetDrawColor(0, 0, 0, 255)
 			surface.SetMaterial(self.scopemat)
-			local x1 = x * math.atan(math.rad(math.cos(CurTime()) * 1))
-			local y1 = y * math.atan(math.rad(math.sin(CurTime()) * 1))
+			local x1 = x * math.atan(math.rad(math.cos(curTime) * 1))
+			local y1 = y * math.atan(math.rad(math.sin(curTime) * 1))
 			surface.DrawTexturedRectRotatedHuy(0, 0, blackout * 0.75 * rtsize / 512 + 512, blackout * rtsize / 512 * 0.75 + 512, 0, (y1 * 1 / (scrh / ScrH())) * distMul + rtsize / 2, (x1 * 1 / (scrw / ScrW()) * distMul) + rtsize / 2)
 			surface.DrawTexturedRectRotatedHuy(0, 0, blackout * 0.75 * rtsize / 512 + 512, blackout * rtsize / 512 * 0.75 + 512, 0, -diffa[2] * 2 * distMul + rtsize / 2, -diffa[1] * 2 * distMul + rtsize / 2)
 			if self.SightDrawFunc then self:SightDrawFunc() end
