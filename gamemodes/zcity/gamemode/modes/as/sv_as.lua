@@ -302,7 +302,6 @@ function MODE:GiveEquipment()
 					if subrole == "overwatch" then
 						ply.organism.stamina.range = 150
 						hg.AddArmor(ply, "ent_armor_vest16")
-						hg.AddArmor(ply, "ent_armor_mask2")
 						hg.AddArmor(ply, "ent_armor_helmet3")
 
 						local primary = ply:Give("weapon_rpk")
@@ -357,9 +356,9 @@ function MODE:GiveEquipment()
 							ply:GiveAmmo(pistol:GetMaxClip1() * 3, pistol:GetPrimaryAmmoType(), true)
 						end
 
-						local shotgun = ply:Give("weapon_remington870")
+						local shotgun = ply:Give("weapon_saiga12")
 						if IsValid(shotgun) and shotgun.GetMaxClip1 then
-							ply:GiveAmmo(shotgun:GetMaxClip1() * 3, shotgun:GetPrimaryAmmoType(), true)
+							ply:GiveAmmo(shotgun:GetMaxClip1() * 4, shotgun:GetPrimaryAmmoType(), true)
 							ply:SelectWeapon(shotgun:GetClass())
 						else
 							ply:SelectWeapon("weapon_hands_sh")
