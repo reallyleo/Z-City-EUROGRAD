@@ -1,10 +1,10 @@
-RunConsoleCommand("net_compresspackets", "1")
-RunConsoleCommand("net_maxcleartime", "4")
-RunConsoleCommand("vfire_light_brightness", "0.1")
+-- RunConsoleCommand("net_compresspackets", "1")
+-- RunConsoleCommand("net_maxcleartime", "4")
+-- RunConsoleCommand("vfire_light_brightness", "0.1")
 
-RunConsoleCommand("filesystem_max_stdio_read", "16")
-RunConsoleCommand("net_splitpacket_maxrate", "1048576")
-RunConsoleCommand("net_udp_rcvbuf", "131072")
+-- RunConsoleCommand("filesystem_max_stdio_read", "16")
+-- RunConsoleCommand("net_splitpacket_maxrate", "1048576")
+-- RunConsoleCommand("net_udp_rcvbuf", "131072")
 
 
 --\\ Fuel system for glide
