@@ -241,15 +241,16 @@ if CLIENT then
 		grid:SetCols(5)
 		grid:SetColWide(sizeX / 5 - sizeX / 16 / 9)
 		grid:SetRowHeight(sizeY / 6.5 + sizeY / 32)
+		local searchMul = 0.5
 		local count = 0
 		for tab, things in pairs(inv) do
 			if not istable(things) then continue end
 			for i, thing in pairs(things) do
 				ent.foundloot = ent.foundloot or {}
-				count = count + ((ent:IsPlayer() or ent:IsRagdoll()) and ((hg.TraitorLoot[i] and ent:IsPlayer()) and 2 or 0.5) or 1) * (not ent.foundloot[i] and 1 or 0)
+				count = count + (((ent:IsPlayer() or ent:IsRagdoll()) and ((hg.TraitorLoot[i] and ent:IsPlayer()) and 2 or 0.5) or 1) * (not ent.foundloot[i] and 1 or 0)) * searchMul
 			end
 		end
-		local time = CurTime() + 3
+		local time = CurTime() + 1.5
 		function DScrollPanel:Paint(w, h)
 			txt = "Searching"
 			if time > 0 then
@@ -257,10 +258,10 @@ if CLIENT then
 					txt = txt .. "."
 				end
 				if time < CurTime() then
-					time = CurTime() + 3
+					time = CurTime() + 1.5
 				end
 			end
-			draw.DrawText((plyMenu.Created + count + 3) < CurTime() and "" or txt, "ZCity_Small", w / 2, h / 2.8, Color(255,255,255,15), TEXT_ALIGN_CENTER)
+			draw.DrawText((plyMenu.Created + count + 1.5) < CurTime() and "" or txt, "ZCity_Small", w / 2, h / 2.8, Color(255,255,255,15), TEXT_ALIGN_CENTER)
 		end
 		local count2 = 0
 		
@@ -283,14 +284,14 @@ if CLIENT then
 				ent.foundloot = ent.foundloot or {}
 
 				if ent:IsPlayer() and IsValid(ent:GetActiveWeapon()) and ent:GetActiveWeapon():GetClass() == i then continue end
-				count2 = count2 + (!ent.foundloot[i] and 1 or 0)//((ent:IsPlayer() or ent:IsRagdoll()) and ((hg.TraitorLoot[i] and ent:IsPlayer()) and 2 or 0.5) or 1) * (not ent.foundloot[i] and 1 or 0)
+				count2 = count2 + ((not ent.foundloot[i] and 1 or 0) * searchMul)
 
 				local button = vgui.Create("DButton", plyMenu)
 				button:SetText("")
 				button:DockMargin(5, 0, 2, 0)
 				button:SetSize(0,0)
 				--button:SetSize(sizeX / 5.8, sizeY / 5.8)
-				button.Created = CurTime() + (!ent.foundloot[i] and 2 or 0) + count2
+				button.Created = CurTime() + (!ent.foundloot[i] and 1 or 0) + count2
 				button.Think = function(self)
 					if self.Created and (self.Created < CurTime()) then
 						self:SetSize(sizeX / 5.8, sizeY / 5.8)
@@ -363,7 +364,7 @@ if CLIENT then
 						button.SoundKD = CurTime() + 0.1
 					end
 
-					surface.SetDrawColor(button.col1, 0, 0, 15)
+					surface.SetDrawColor(0, 0, button.col1, 15)
 					surface.DrawRect(0, 0, w, h)
 					local Icon, HaveIcon, Overide, Quad = getIconThing(i, thing, tab)
 					if Icon then
@@ -381,7 +382,7 @@ if CLIENT then
 						surface.DrawTexturedRect(Quad and w / 5 + 5 or 0 - 5, 5, Quad and (w / 2 + 2.5) or (w + 10), Quad and h / 1.3 or h - 10)
 					end
 
-					surface.SetDrawColor(button.col1,0,0,button.col1)
+					surface.SetDrawColor(0, 0, button.col1, button.col1)
 					surface.DrawOutlinedRect(0, 0, w, h, 1)
 					local Text = (tab == "Ammo" and game.GetAmmoName(name)) or language.GetPhrase(name)
 					local SubText = utf8.sub(Text, 17)

@@ -475,12 +475,192 @@ if CLIENT then
         net.SendToServer()
     end
 
+    local function OpenKarmaMenu()
+        local frame = vgui.Create("ZFrame")
+        frame:SetSize(520, 380)
+        frame:Center()
+        frame:SetTitle("Manage Karma")
+        frame:MakePopup()
+
+        local top = vgui.Create("DPanel", frame)
+        top:Dock(TOP)
+        top:DockMargin(8, 8, 8, 6)
+        top:SetTall(70)
+        StyleElement(top, Color(30, 30, 30, 200))
+
+        local targetMode = vgui.Create("DComboBox", top)
+        targetMode:Dock(TOP)
+        targetMode:DockMargin(8, 8, 8, 4)
+        targetMode:SetTall(24)
+        targetMode:SetValue("Target: Selected player")
+        targetMode:AddChoice("Target: Selected player", "player", true)
+        targetMode:AddChoice("Target: All players", "all", false)
+        targetMode:AddChoice("Target: None", "none", false)
+
+        local playerSelect = vgui.Create("DComboBox", top)
+        playerSelect:Dock(TOP)
+        playerSelect:DockMargin(8, 0, 8, 8)
+        playerSelect:SetTall(24)
+        playerSelect:SetValue("Player: (pick)")
+
+        local function refreshPlayers()
+            playerSelect:Clear()
+            local players = player.GetAll()
+            table.sort(players, function(a, b)
+                return string.lower(a:Nick()) < string.lower(b:Nick())
+            end)
+
+            for _, p in ipairs(players) do
+                if not IsValid(p) or p:IsBot() then continue end
+                playerSelect:AddChoice(p:Nick() .. " (" .. p:SteamID64() .. ")", p)
+            end
+        end
+
+        refreshPlayers()
+
+        local bottomRow = vgui.Create("DPanel", frame)
+        bottomRow:Dock(BOTTOM)
+        bottomRow:DockMargin(8, 0, 8, 8)
+        bottomRow:SetTall(32)
+        bottomRow.Paint = nil
+
+        local refreshBtn = vgui.Create("DButton", bottomRow)
+        refreshBtn:Dock(RIGHT)
+        refreshBtn:SetWide(140)
+        refreshBtn:SetText("Refresh Players")
+        StyleElement(refreshBtn)
+        refreshBtn.DoClick = function()
+            refreshPlayers()
+        end
+
+        local scroll = vgui.Create("DScrollPanel", frame)
+        scroll:Dock(FILL)
+        scroll:DockMargin(8, 0, 8, 6)
+        StyleElement(scroll, Color(30, 30, 30, 200))
+
+        local row = vgui.Create("DPanel", scroll)
+        row:Dock(TOP)
+        row:DockMargin(8, 8, 8, 6)
+        row:SetTall(28)
+        row.Paint = nil
+
+        local karmaEntry = vgui.Create("DTextEntry", row)
+        karmaEntry:Dock(FILL)
+        karmaEntry:SetTall(28)
+        karmaEntry:SetPlaceholderText("Karma amount (-60 to 100)")
+        karmaEntry:SetUpdateOnType(true)
+
+        local function getTargetMode()
+            local _, mode = targetMode:GetSelected()
+            return mode or "player"
+        end
+
+        local function getSelectedSid64()
+            local _, ent = playerSelect:GetSelected()
+            return ent
+        end
+
+        local function applySetKarma(value)
+            local mode = getTargetMode()
+            if mode == "none" then return end
+
+            value = tonumber(value)
+            if not value then return end
+            value = math.Clamp(value, -60, 100)
+
+            if mode == "all" then
+                net.Start("hg_admin_karma")
+                    net.WriteString("set")
+                    net.WriteBool(true)
+                    net.WriteFloat(value)
+                net.SendToServer()
+                return
+            end
+
+            local ent = getSelectedSid64()
+            if not IsValid(ent) then return end
+            net.Start("hg_admin_karma")
+                net.WriteString("set")
+                net.WriteBool(false)
+                net.WriteEntity(ent)
+                net.WriteFloat(value)
+            net.SendToServer()
+        end
+
+        local function applyResetKarma()
+            local mode = getTargetMode()
+            if mode == "none" then return end
+
+            if mode == "all" then
+                net.Start("hg_admin_karma")
+                    net.WriteString("reset")
+                    net.WriteBool(true)
+                net.SendToServer()
+                return
+            end
+
+            local ent = getSelectedSid64()
+            if not IsValid(ent) then return end
+            net.Start("hg_admin_karma")
+                net.WriteString("reset")
+                net.WriteBool(false)
+                net.WriteEntity(ent)
+            net.SendToServer()
+        end
+
+        local function addActionButton(text, onClick)
+            local btn = vgui.Create("DButton", scroll)
+            btn:SetText(text)
+            btn:Dock(TOP)
+            btn:DockMargin(8, 0, 8, 8)
+            btn:SetTall(34)
+            StyleElement(btn)
+            btn.DoClick = onClick
+            return btn
+        end
+
+        addActionButton("Set To Amount", function()
+            applySetKarma(karmaEntry:GetValue())
+        end)
+
+        addActionButton("Set Max (100)", function()
+            applySetKarma(100)
+        end)
+
+        addActionButton("Reset (100)", function()
+            applyResetKarma()
+        end)
+
+        addActionButton("Set To 0 (Ban risk)", function()
+            applySetKarma(0)
+        end)
+
+        addActionButton("Toggle Karma On/Off", function()
+            net.Start("hg_admin_karma")
+                net.WriteString("toggle")
+            net.SendToServer()
+        end)
+
+        local function updateEnabled()
+            local mode = getTargetMode()
+            local needsPlayer = mode == "player"
+            playerSelect:SetEnabled(needsPlayer)
+            playerSelect:SetAlpha(needsPlayer and 255 or 80)
+        end
+
+        targetMode.OnSelect = function()
+            updateEnabled()
+        end
+
+        updateEnabled()
+    end
+
     local function OpenAdminMenu()
         if IsValid(isMenuOpen) then return end
 
         isMenuOpen = vgui.Create("ZFrame")
         local frame = isMenuOpen
-        frame:SetSize(300, 210)
+        frame:SetSize(300, 260)
         frame:Center()
         frame:SetTitle("Admin Panel")
         frame:MakePopup()
@@ -513,6 +693,16 @@ if CLIENT then
         StyleElement(queueModeBtn)
         queueModeBtn.DoClick = function()
             OpenModeSelection("queue")
+        end
+
+        local karmaBtn = vgui.Create("DButton", frame)
+        karmaBtn:SetText("Manage Karma")
+        karmaBtn:Dock(TOP)
+        karmaBtn:DockMargin(5, 2, 5, 2)
+        karmaBtn:SetSize(300, 40)
+        StyleElement(karmaBtn)
+        karmaBtn.DoClick = function()
+            OpenKarmaMenu()
         end
 
         local endRoundBtn = vgui.Create("DButton", frame)

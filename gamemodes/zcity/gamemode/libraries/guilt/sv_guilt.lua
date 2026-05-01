@@ -300,6 +300,7 @@ hook.Add("Player Spawn","SlowlyRestoreKarma",function(ply)
 end)
 
 hook.Add("Player Think", "karmagain", function(ply)
+    if zb.KarmaDisabled then return end
     if (ply.KarmaGainThink or 0) > CurTime() then return end
     ply.KarmaGainThink = CurTime() + 120
 
@@ -522,6 +523,62 @@ end
 
 util.AddNetworkString("open_guilt_menu")
 util.AddNetworkString("forgive_player")
+util.AddNetworkString("hg_admin_karma")
+
+net.Receive("hg_admin_karma", function(len, ply)
+    if not IsValid(ply) or not ply:IsAdmin() then return end
+
+    local action = net.ReadString()
+    if action == "toggle" then
+        zb.KarmaDisabled = not zb.KarmaDisabled
+        local msg = "Karma system " .. (zb.KarmaDisabled and "DISABLED" or "ENABLED") .. " globally."
+        PrintMessage(HUD_PRINTTALK, msg)
+        return
+    end
+
+    if action == "set" then
+        local isAll = net.ReadBool()
+        local value = net.ReadFloat()
+        value = math.Clamp(value, -60, zb.MaxKarma)
+
+        if isAll then
+            for _, p in player.Iterator() do
+                p.Karma = value
+                p:SetNetVar("Karma", value)
+                p:guilt_SetValue(value)
+            end
+            return
+        end
+
+        local target = net.ReadEntity()
+        if not IsValid(target) or not target:IsPlayer() then return end
+        target.Karma = value
+        target:SetNetVar("Karma", value)
+        target:guilt_SetValue(value)
+        return
+    end
+
+    if action == "reset" then
+        local isAll = net.ReadBool()
+        local value = 100
+
+        if isAll then
+            for _, p in player.Iterator() do
+                p.Karma = value
+                p:SetNetVar("Karma", value)
+                p:guilt_SetValue(value)
+            end
+            return
+        end
+
+        local target = net.ReadEntity()
+        if not IsValid(target) or not target:IsPlayer() then return end
+        target.Karma = value
+        target:SetNetVar("Karma", value)
+        target:guilt_SetValue(value)
+        return
+    end
+end)
 
 net.Receive("open_guilt_menu",function(len, ply)
     if ply:Alive() then return end
@@ -533,6 +590,7 @@ net.Receive("open_guilt_menu",function(len, ply)
 end)
 
 net.Receive("forgive_player", function(len, ply)
+    if zb.KarmaDisabled then return end
     local ent = net.ReadEntity()
     if not IsValid(ent) or not zb.HarmDoneKarma[ply] then return end
     local harm = zb.HarmDoneKarma[ply][ent]

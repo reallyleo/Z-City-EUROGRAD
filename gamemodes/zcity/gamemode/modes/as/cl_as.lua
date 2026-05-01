@@ -304,6 +304,14 @@ function MODE:HUDPaint()
 			objColor.a = 255 * fade
 			draw.SimpleText(teamData.objective, "ZB_HomicideMedium", sw * 0.5, sh * 0.9, objColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 		end
+
+		if hg.PluvTown.Active then
+			surface.SetMaterial(hg.PluvTown.PluvMadness)
+			surface.SetDrawColor(255, 255, 255, math.random(175, 255) * fade / 2)
+			surface.DrawTexturedRect(sw * 0.25, sh * 0.44 - ScreenScale(15), sw / 2, ScreenScale(30))
+
+			draw.SimpleText("SOMEWHERE IN PLUVTOWN", "ZB_ScrappersLarge", sw / 2, sh * 0.44 - ScreenScale(2), Color(0, 0, 0, 255 * fade), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		end
 	end
 
 end
