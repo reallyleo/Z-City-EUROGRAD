@@ -65,8 +65,12 @@ AddItemToBUY( "Mini-14", "Weapon", "weapon_mini14", 2200, "Carbines", {} )
 
 AddItemToBUY( "AKM", "Weapon", "weapon_akm", 3200, "Assault", {"holo6","holo1","holo2","supressor1","optic7"}, nil, 0 )--0 = terrorist, 1 = swat
 AddItemToBUY( "M4A1", "Weapon", "weapon_m4a1", 2700, "Assault", {"holo1","holo2","supressor2","holo15","optic8"}, nil, 1 )
+AddItemToBUY( "M16A2", "Weapon", "weapon_m16a2", 2500, "Assault", {"holo1","holo2","holo15","optic8"}, nil, 1 )
+AddItemToBUY( "SG552", "Weapon", "weapon_sg552", 2800, "Assault", {"holo1","holo2","supressor2","holo15","optic8"}, nil, 1 )
 AddItemToBUY( "HK416", "Weapon", "weapon_hk416", 3000, "Assault", {"holo1","holo2","supressor2","holo15","optic8"}, nil, 1 )
 AddItemToBUY( "AK-74", "Weapon", "weapon_ak74", 2400, "Assault", {"holo6","holo1","holo2","supressor1","supressor8","optic7"}, nil, 0 )
+AddItemToBUY( "AKS-74U", "Weapon", "weapon_ak74u", 2200, "Assault", {"holo6","holo1","holo2","supressor1","supressor8","optic7"}, nil, 0 )
+AddItemToBUY( "ASVAL", "Weapon", "weapon_asval", 3600, "Assault", {"holo6","holo1","holo2","optic7"}, nil, 0 )
 
 AddItemToBUY( "MP-5", "Weapon", "weapon_mp5", 1500, "Submachine", {"supressor4"} )
 AddItemToBUY( "MP-7", "Weapon", "weapon_mp7", 2300, "Submachine", {"holo1","holo2","supressor2","holo15"} )
@@ -151,6 +155,7 @@ AddItemToBUY( "9x19mm Green Tracer (30)", "Ammo", "ent_ammo_9x19mmgreentracer", 
 AddItemToBUY( "9x19mm QuakeMaker (30)", "Ammo", "ent_ammo_9x19mmqm", 150, "Ammo", {}, 30)
 AddItemToBUY( "9x17mm (30)", "Ammo", "ent_ammo_9x17mm", 75, "Ammo", {}, 30)
 AddItemToBUY( "7.65x17mm (30)", "Ammo", "ent_ammo_7.65x17mm", 75, "Ammo", {}, 30)
+AddItemToBUY( "9x39mm (30)", "Ammo", "ent_ammo_9x39mm", 200, "Ammo", {}, 30)
 
 AddItemToBUY( "5.56x45mm (30)", "Ammo", "ent_ammo_5.56x45mm", 100, "Ammo", {}, 30)
 AddItemToBUY( "5.56x45mm AP (30)", "Ammo", "ent_ammo_5.56x45mmap", 200, "Ammo", {}, 30)

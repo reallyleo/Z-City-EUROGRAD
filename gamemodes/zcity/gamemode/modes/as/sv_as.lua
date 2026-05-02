@@ -266,11 +266,13 @@ function MODE:GiveEquipment()
 					ply.noSound = true
 
 					ply:SetupTeam(0)
+					ply:SetPlayerClass("activeshooter")
 					zb.GiveRole(ply, "Active Shooter", Color(200, 40, 40))
 
-					local name = table.Random(russian_names) .. " " .. table.Random(russian_surnames)
-					ply:SetNWString("RussianName", name)
-					ply:SetNetVar("RussianName", name)
+					local russianName = table.Random(russian_names) .. " " .. table.Random(russian_surnames)
+					ply:SetNWString("RussianName", russianName)
+					ply:SetNetVar("RussianName", russianName)
+					ply:SetNWString("PlayerName", russianName)
 
 					timer.Simple(0, function()
 						if not IsValid(ply) then return end
@@ -279,6 +281,7 @@ function MODE:GiveEquipment()
 						Appearance.AAttachments = { shooter_masks[math.random(#shooter_masks)], "terrorist_band" }
 						ply:SetNetVar("Accessories", Appearance.AAttachments or "none")
 						ply.CurAppearance = Appearance
+						ply:SetNWString("PlayerName", russianName)
 					end)
 
 					local inv = ply:GetNetVar("Inventory", {})
@@ -400,7 +403,7 @@ function MODE:GiveEquipment()
 end
 
 function MODE:RoundThink()
-	if not swatSpawned and (CurTime() - (zb.ROUND_BEGIN or CurTime())) >= 240 then
+	if not swatSpawned and (CurTime() - (zb.ROUND_BEGIN or CurTime())) >= 300 then
 		local deadPlayers = {}
 
 		for _, ply in player.Iterator() do

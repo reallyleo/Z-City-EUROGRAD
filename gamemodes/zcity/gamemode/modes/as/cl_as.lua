@@ -29,11 +29,11 @@ surface.CreateFont("UnconsciousHint", {
 })
 
 net.Receive("as_start", function()
-	surface.PlaySound("zbattle/criresp.mp3")
+	surface.PlaySound("activeshooter/activestart.mp3")
 	zb.RemoveFade()
 
 	timer.Simple(3, function()
-		sound.PlayFile("sound/zbattle/criresp/criepmission.mp3", "mono noblock", function(station)
+		sound.PlayFile("sound/activeshooter/activecoming.mp3", "mono noblock", function(station)
 			if IsValid(station) then
 				station:Play()
 				song = station
@@ -225,7 +225,7 @@ function MODE:HUDPaint()
 	local sw, sh = ScrW(), ScrH()
 	local startTime = zb.ROUND_START or CurTime()
 	local shooterSpawnTime = startTime + 55
-	local swatArrivalTime = (zb.ROUND_START or startTime) + 240
+	local swatArrivalTime = (zb.ROUND_START or startTime) + 300
 
 	local ply = LocalPlayer()
 	local waitingShooter = IsValid(ply) and ply:GetNWBool("AS_WaitingShooter", false)

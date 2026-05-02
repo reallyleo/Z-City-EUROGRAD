@@ -518,7 +518,7 @@ function SKIN:PaintPropertySheet( panel, width, height )
 	surface.SetDrawColor(30, 30, 30, 150)
 	surface.DrawRect(0, 0, width, height)
 
-	surface.SetDrawColor(255, 0, 0, 150)
+	surface.SetDrawColor(ColorAlpha(hg.VGUI.MainColor, 150))
 	surface.DrawOutlinedRect(0, 0, width, height)
 end
 
@@ -535,7 +535,7 @@ function SKIN:PaintActiveTab( panel, w, h )
 
 	surface.SetDrawColor(30, 30, 30, 150)
 	surface.DrawRect(0, 0, w, h*0.8)
-	surface.SetDrawColor(255, 0, 0, 150)
+	surface.SetDrawColor(ColorAlpha(hg.VGUI.MainColor, 150))
 	surface.DrawOutlinedRect(0, 0, w, h*0.8,1)
 
 end

@@ -273,17 +273,19 @@ surface.CreateFont("ZB_TDM_DESCSMALL", {
     antialias = true
 })
 
+local buyMenuAccent = (hg and hg.VGUI and hg.VGUI.MainColor) or Color(0, 100, 255)
+
 local function PaintFrame(self,w,h)
 	BlurBackground(self)
 
-	surface.SetDrawColor( 255, 0, 0, 128)
+	surface.SetDrawColor(buyMenuAccent.r, buyMenuAccent.g, buyMenuAccent.b, 128)
     surface.DrawOutlinedRect( 0, 0, w, h, 2.5 )
 end
 
 local function PaintPanel(self,w,h)
 	surface.SetDrawColor( 0, 0, 0,155)
     surface.DrawRect( 0, 0, w, h, 2.5 )
-	surface.SetDrawColor( 255, 0, 0, 128)
+	surface.SetDrawColor(buyMenuAccent.r, buyMenuAccent.g, buyMenuAccent.b, 128)
     surface.DrawOutlinedRect( 0, 0, w, h, 2.5 )
 end
 
@@ -292,10 +294,10 @@ local gradient_l = Material("vgui/gradient-l")
 local function PaintPanel1(self,w,h)
 	surface.SetDrawColor( 0, 0, 0,155)
     surface.DrawRect( 0, 0, w, h, 2.5 )
-	surface.SetDrawColor( 255, 0, 0, 128)
+	surface.SetDrawColor(buyMenuAccent.r, buyMenuAccent.g, buyMenuAccent.b, 128)
     surface.DrawOutlinedRect( 0, 0, w, h, 2.5 )
 	draw.RoundedBox( 0, 2.5, 2.5, w-5, h-5, Color( 0, 0, 0, 140) )
-    surface.SetDrawColor(155, 0, 0, 55)
+    surface.SetDrawColor(buyMenuAccent.r, buyMenuAccent.g, buyMenuAccent.b, 55)
     surface.SetMaterial(gradient_l)
     surface.DrawTexturedRect( 0, 0, w/1.5, h )
 end
