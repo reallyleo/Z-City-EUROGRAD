@@ -105,12 +105,36 @@ local keydownreload
 local steamNameCache = steamNameCache or {}
 local steamNameRequested = steamNameRequested or {}
 
+local function SafePlayerName(ply)
+	if not IsValid(ply) then return nil end
+
+	local steamNameFn = ply.SteamName
+	if type(steamNameFn) == "function" then
+		local ok, res = pcall(steamNameFn, ply)
+		if ok and res and res ~= "" then return res end
+	end
+
+	local nickFn = ply.Nick
+	if type(nickFn) == "function" then
+		local ok, res = pcall(nickFn, ply)
+		if ok and res and res ~= "" then return res end
+	end
+
+	local nameFn = ply.Name
+	if type(nameFn) == "function" then
+		local ok, res = pcall(nameFn, ply)
+		if ok and res and res ~= "" then return res end
+	end
+
+	return nil
+end
+
 local function GetSteamPersonaName(ply)
 	if not IsValid(ply) or not ply.IsPlayer or not ply:IsPlayer() then return nil end
 
 	local sid64 = ply:SteamID64()
 	if not sid64 or sid64 == "" or sid64 == "0" then
-		return ply:SteamName() or ply:Nick() or ply:Name()
+		return SafePlayerName(ply)
 	end
 
 	local cached = steamNameCache[sid64]
@@ -125,7 +149,7 @@ local function GetSteamPersonaName(ply)
 		end)
 	end
 
-	return ply:SteamName() or ply:Nick() or ply:Name()
+	return SafePlayerName(ply)
 end
 
 hook.Add("HUDPaint","FUCKINGSAMENAMEUSEDINHOOKFUCKME",function()
@@ -136,7 +160,7 @@ hook.Add("HUDPaint","FUCKINGSAMENAMEUSEDINHOOKFUCKME",function()
 	
 	surface.SetFont("HomigradFont")
 	surface.SetTextColor(255, 255, 255, 255)
-	local txt = "Spectating player: "..(GetSteamPersonaName(spect) or spect:Nick() or spect:Name())
+	local txt = "Spectating player: "..(GetSteamPersonaName(spect) or SafePlayerName(spect) or "unknown")
 	local w, h = surface.GetTextSize(txt)
 	surface.SetTextPos(ScrW() / 2 - w / 2, ScrH() / 8 * 7)
 	surface.DrawText(txt)

@@ -119,14 +119,18 @@ end
 local hg_healanims = ConVarExists("hg_healanims") and GetConVar("hg_healanims") or CreateConVar("hg_healanims", 0, FCVAR_REPLICATED + FCVAR_ARCHIVE, "Toggle heal/food animations", 0, 1)
 
 function SWEP:Think()
-	if (not self:GetOwner():KeyDown(IN_ATTACK) or self.CDEating > CurTime()) and hg_healanims:GetBool() then
+	local owner = self:GetOwner()
+	if (not IsValid(owner) or not owner:KeyDown(IN_ATTACK) or self.CDEating > CurTime()) and hg_healanims:GetBool() then
 		self:SetHolding(math.max(self:GetHolding() - 10, 0))
 	end
 end
 
 local lang1, lang2 = Angle(0, -10, 0), Angle(0, 10, 0)
 function SWEP:Animation()
-	if (self:GetOwner().zmanipstart ~= nil and not self:GetOwner().organism.larmamputated) then return end
+	local owner = self:GetOwner()
+	if not IsValid(owner) then return end
+	local org = owner.organism
+	if owner.zmanipstart ~= nil and (not org or not org.larmamputated) then return end
 	local hold = self:GetHolding()
     self:BoneSet("r_upperarm", vector_origin, Angle(0, -10 - hold, 10))
     self:BoneSet("r_forearm", vector_origin, Angle(-15, -hold, -hold))

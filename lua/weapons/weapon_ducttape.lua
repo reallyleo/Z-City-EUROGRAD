@@ -143,7 +143,10 @@ end
 
 local lang1, lang2 = Angle(0, -10, 0), Angle(0, 10, 0)
 function SWEP:Animation()
-	if self:GetOwner().zmanipstart ~= nil and not self:GetOwner().organism.larmamputated then return end
+	local owner = self:GetOwner()
+	if not IsValid(owner) then return end
+	local org = owner.organism
+	if owner.zmanipstart ~= nil and (not org or not org.larmamputated) then return end
 	local hold = self:GetHolding()
 	self:BoneSet("r_upperarm", vector_origin, Angle(0, -10 - hold / 1.5, 10))
 	self:BoneSet("r_forearm", vector_origin, Angle(0, hold / 1, 0))
@@ -194,6 +197,9 @@ local function BindObjects(ent1, pos1, ent2, pos2, power, bone1, bone2)
 	ent2.DuctTape = ent2.DuctTape or {}
 	local Strength = ent1.DuctTape and ent1.DuctTape[bone1] and #ent1.DuctTape[bone1] or 1
 	local weld = not ent1:IsRagdoll() and not ent2:IsRagdoll() and constraint.Rope(ent1, ent2, 0, 0, ent1:WorldToLocal(pos1), ent2:WorldToLocal(pos2), (pos1 - pos2):Length(), -.1, (500 + Strength * 100) * 5, 0, "", false) or constraint.Weld(ent1, ent2, bone1, bone2, (500 + Strength * 100) * 15, false, false)
+	if not IsValid(weld) then
+		return ent1:IsWorld() and (ent2.DuctTape and ent2.DuctTape[bone2] and ent2.DuctTape[bone2][2] or 0) or (ent1.DuctTape and ent1.DuctTape[bone1] and ent1.DuctTape[bone1][2] or 0)
+	end
 	if not ent1.DuctTape[bone1] then
 		ent1.DuctTape[bone1] = {weld, 1}
 		weld:CallOnRemove("removefromtbl", function() ent1.DuctTape[bone1] = nil end)

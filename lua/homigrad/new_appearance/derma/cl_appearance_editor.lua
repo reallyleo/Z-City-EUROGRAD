@@ -746,6 +746,14 @@ function PANEL:PostInit()
         end)
         
         function hatSelectMenu:OnClose()
+            if not IsValid(main) or not istable(main.AppearanceTable) or not istable(main.AppearanceTable.AAttachments) then
+                previewAccessory[1] = nil
+                if IsValid(main) then
+                    main.modelPosID = "All"
+                end
+                return
+            end
+
             if previewAccessory[1] then
                 main.AppearanceTable.AAttachments[1] = originalAccessory[1]
                 previewAccessory[1] = nil
@@ -809,6 +817,14 @@ function PANEL:PostInit()
         end)
         
         function faceSelectorMenu:OnClose()
+            if not IsValid(main) or not istable(main.AppearanceTable) or not istable(main.AppearanceTable.AAttachments) then
+                previewAccessory[2] = nil
+                if IsValid(main) then
+                    main.modelPosID = "All"
+                end
+                return
+            end
+
             if previewAccessory[2] then
                 main.AppearanceTable.AAttachments[2] = originalAccessory[2]
                 previewAccessory[2] = nil
@@ -873,6 +889,14 @@ function PANEL:PostInit()
         end)
         
         function bodySelectorMenu:OnClose()
+            if not IsValid(main) or not istable(main.AppearanceTable) or not istable(main.AppearanceTable.AAttachments) then
+                previewAccessory[3] = nil
+                if IsValid(main) then
+                    main.modelPosID = "All"
+                end
+                return
+            end
+
             if previewAccessory[3] then
                 main.AppearanceTable.AAttachments[3] = originalAccessory[3]
                 previewAccessory[3] = nil
