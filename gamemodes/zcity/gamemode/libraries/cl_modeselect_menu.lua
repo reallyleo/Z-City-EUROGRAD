@@ -590,8 +590,8 @@ if CLIENT then
             net.Start("hg_admin_karma")
                 net.WriteString("set")
                 net.WriteBool(false)
-                net.WriteEntity(ent)
                 net.WriteFloat(value)
+                net.WriteEntity(ent)
             net.SendToServer()
         end
 
@@ -635,7 +635,7 @@ if CLIENT then
             applySetKarma(maxKarma)
         end)
 
-        addActionButton("Reset (100)", function()
+        addActionButton("Reset (Max)", function()
             applyResetKarma()
         end)
 

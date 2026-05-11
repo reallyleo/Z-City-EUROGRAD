@@ -110,6 +110,17 @@ local function IsLookingAt(ply, targetVec)
     return ply:GetAimVector():Dot(diff) / diff:Length() >= 0.8
 end
 
+local function karmaRiskSuffix(value)
+    if not isnumber(value) then return "" end
+    if value <= 0 then return " (BAN RISK)" end
+    if value <= 10 then return " (VERY LOW)" end
+    return ""
+end
+
+local function karmaActorName(ply)
+    return IsValid(ply) and ply:Nick() or "Console"
+end
+
 hook.Add("HomigradDamage", "GuiltReg", function(ply, dmgInfo, hitgroup, ent, harm) 
     local Attacker, Victim = dmgInfo:GetAttacker(), ply
     
@@ -462,6 +473,9 @@ concommand.Add("hg_setkarma", function(ply, cmd, args)
 
     local msg = "Set karma for " .. target:Nick() .. " to " .. karma
     if IsValid(ply) then ply:ChatPrint(msg) else print(msg) end
+    if IsValid(target) then
+        target:ChatPrint("Your karma was set to " .. karma .. " by " .. karmaActorName(ply) .. karmaRiskSuffix(karma) .. ".")
+    end
 end)
 
 concommand.Add("hg_resetkarma", function(ply, cmd, args)
@@ -469,9 +483,10 @@ concommand.Add("hg_resetkarma", function(ply, cmd, args)
     
     if args[1] == "*" or args[1] == "all" then
         for _, p in player.Iterator() do
-            p.Karma = 100
-            p:SetNetVar("Karma", 100)
-            p:guilt_SetValue(100)
+            p.Karma = zb.MaxKarma
+            p:SetNetVar("Karma", zb.MaxKarma)
+            p:guilt_SetValue(zb.MaxKarma)
+            p:ChatPrint("Your karma was reset to " .. zb.MaxKarma .. " by " .. karmaActorName(ply) .. ".")
         end
         local msg = "Reset karma for ALL players."
         if IsValid(ply) then ply:ChatPrint(msg) else print(msg) end
@@ -489,12 +504,15 @@ concommand.Add("hg_resetkarma", function(ply, cmd, args)
         return
     end
 
-    target.Karma = 100
-    target:SetNetVar("Karma", 100)
-    target:guilt_SetValue(100)
+    target.Karma = zb.MaxKarma
+    target:SetNetVar("Karma", zb.MaxKarma)
+    target:guilt_SetValue(zb.MaxKarma)
 
-    local msg = "Reset karma for " .. target:Nick() .. " to 100."
+    local msg = "Reset karma for " .. target:Nick() .. " to " .. zb.MaxKarma .. "."
     if IsValid(ply) then ply:ChatPrint(msg) else print(msg) end
+    if IsValid(target) then
+        target:ChatPrint("Your karma was reset to " .. zb.MaxKarma .. " by " .. karmaActorName(ply) .. ".")
+    end
 end)
 
 zb.KarmaDisabled = false
@@ -540,13 +558,16 @@ net.Receive("hg_admin_karma", function(len, ply)
         local isAll = net.ReadBool()
         local value = net.ReadFloat()
         value = math.Clamp(value, -60, zb.MaxKarma)
+        local actor = karmaActorName(ply)
 
         if isAll then
             for _, p in player.Iterator() do
                 p.Karma = value
                 p:SetNetVar("Karma", value)
                 p:guilt_SetValue(value)
+                p:ChatPrint("Your karma was set to " .. value .. " by " .. actor .. karmaRiskSuffix(value) .. ".")
             end
+            ply:ChatPrint("Set karma for ALL players to " .. value .. karmaRiskSuffix(value) .. ".")
             return
         end
 
@@ -555,19 +576,24 @@ net.Receive("hg_admin_karma", function(len, ply)
         target.Karma = value
         target:SetNetVar("Karma", value)
         target:guilt_SetValue(value)
+        target:ChatPrint("Your karma was set to " .. value .. " by " .. actor .. karmaRiskSuffix(value) .. ".")
+        ply:ChatPrint("Set karma for " .. target:Nick() .. " to " .. value .. karmaRiskSuffix(value) .. ".")
         return
     end
 
     if action == "reset" then
         local isAll = net.ReadBool()
-        local value = 100
+        local value = zb.MaxKarma
+        local actor = karmaActorName(ply)
 
         if isAll then
             for _, p in player.Iterator() do
                 p.Karma = value
                 p:SetNetVar("Karma", value)
                 p:guilt_SetValue(value)
+                p:ChatPrint("Your karma was reset to " .. value .. " by " .. actor .. ".")
             end
+            ply:ChatPrint("Reset karma for ALL players to " .. value .. ".")
             return
         end
 
@@ -576,6 +602,8 @@ net.Receive("hg_admin_karma", function(len, ply)
         target.Karma = value
         target:SetNetVar("Karma", value)
         target:guilt_SetValue(value)
+        target:ChatPrint("Your karma was reset to " .. value .. " by " .. actor .. ".")
+        ply:ChatPrint("Reset karma for " .. target:Nick() .. " to " .. value .. ".")
         return
     end
 end)
