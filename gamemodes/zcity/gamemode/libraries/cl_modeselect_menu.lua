@@ -482,6 +482,10 @@ if CLIENT then
         frame:SetTitle("Manage Karma")
         frame:MakePopup()
 
+        local selectedTargetMode = "player"
+        local selectedPlayer = nil
+        local maxKarma = zb and zb.MaxKarma or 100
+
         local top = vgui.Create("DPanel", frame)
         top:Dock(TOP)
         top:DockMargin(8, 8, 8, 6)
@@ -496,12 +500,18 @@ if CLIENT then
         targetMode:AddChoice("Target: Selected player", "player", true)
         targetMode:AddChoice("Target: All players", "all", false)
         targetMode:AddChoice("Target: None", "none", false)
+        targetMode.OnSelect = function(_, _, _, data)
+            selectedTargetMode = data or "player"
+        end
 
         local playerSelect = vgui.Create("DComboBox", top)
         playerSelect:Dock(TOP)
         playerSelect:DockMargin(8, 0, 8, 8)
         playerSelect:SetTall(24)
         playerSelect:SetValue("Player: (pick)")
+        playerSelect.OnSelect = function(_, _, _, data)
+            selectedPlayer = data
+        end
 
         local function refreshPlayers()
             playerSelect:Clear()
@@ -547,17 +557,15 @@ if CLIENT then
         local karmaEntry = vgui.Create("DTextEntry", row)
         karmaEntry:Dock(FILL)
         karmaEntry:SetTall(28)
-        karmaEntry:SetPlaceholderText("Karma amount (-60 to 100)")
+        karmaEntry:SetPlaceholderText("Karma amount (-60 to " .. tostring(maxKarma) .. ")")
         karmaEntry:SetUpdateOnType(true)
 
         local function getTargetMode()
-            local _, mode = targetMode:GetSelected()
-            return mode or "player"
+            return selectedTargetMode or "player"
         end
 
         local function getSelectedSid64()
-            local _, ent = playerSelect:GetSelected()
-            return ent
+            return selectedPlayer
         end
 
         local function applySetKarma(value)
@@ -566,7 +574,7 @@ if CLIENT then
 
             value = tonumber(value)
             if not value then return end
-            value = math.Clamp(value, -60, 100)
+            value = math.Clamp(value, -60, maxKarma)
 
             if mode == "all" then
                 net.Start("hg_admin_karma")
@@ -623,8 +631,8 @@ if CLIENT then
             applySetKarma(karmaEntry:GetValue())
         end)
 
-        addActionButton("Set Max (100)", function()
-            applySetKarma(100)
+        addActionButton("Set Max (" .. tostring(maxKarma) .. ")", function()
+            applySetKarma(maxKarma)
         end)
 
         addActionButton("Reset (100)", function()
@@ -646,10 +654,6 @@ if CLIENT then
             local needsPlayer = mode == "player"
             playerSelect:SetEnabled(needsPlayer)
             playerSelect:SetAlpha(needsPlayer and 255 or 80)
-        end
-
-        targetMode.OnSelect = function()
-            updateEnabled()
         end
 
         updateEnabled()
