@@ -510,7 +510,6 @@ end
 
 local spawns = {}
 local tbl = {}
-local randomspawns = {}
 
 --[[for i, ent in pairs(ents.FindByClass("info_*")) do
 	table.insert(spawns, ent:GetPos())
@@ -553,19 +552,13 @@ spawns = {}
 for i, ent in pairs(ents.FindByClass("info_*")) do
 	table.insert(spawns, ent:GetPos())
 end
-local navspawns = {}
-local function rebuildNavSpawns()
-	navspawns = {}
-	local navmeshareas = navmesh.GetAllNavAreas()
-	for i = 1, #navmeshareas do
-		local area = navmeshareas[i]
-		if area and not area:IsUnderwater() then
-			navspawns[#navspawns + 1] = area:GetCenter()
-		end
-	end
+
+local navmeshareas = navmesh.GetAllNavAreas()
+for i, k in pairs(navmeshareas) do
+	if k:IsUnderwater() then continue end
+
+	table.insert(spawns,k:GetCenter())
 end
-rebuildNavSpawns()
-table.Add(spawns, navspawns)
 
 if #spawns > 0 then
 	tbl = {}
@@ -577,8 +570,6 @@ if #spawns > 0 then
 	zb.SaveMapPoints( "RandomSpawns", tblnew )
 	--zb.SendSpecificPointsToPly(Entity(1), "RandomSpawns", true)
 	
-	randomspawns = {}
-	table.CopyFromTo(tbladd, randomspawns)
 	table.Add(spawns,tbladd)
 end
 
@@ -588,39 +579,28 @@ hook.Add("PostCleanupMap", "addboxs", function()
 	timer.Simple(.5,function()
 		spawns = {}
 		for i, ent in pairs(ents.FindByClass("info_*")) do
-			spawns[#spawns + 1] = ent:GetPos()
+			table.insert(spawns, ent:GetPos())
+		end
+		
+		local navmeshareas = navmesh.GetAllNavAreas()
+		for i, k in pairs(navmeshareas) do
+			if k:IsUnderwater() then continue end
+
+			table.insert(spawns,k:GetCenter())
 		end
 
-		if #navspawns == 0 then
-			rebuildNavSpawns()
-		end
-		table.Add(spawns, navspawns)
+		tbl = {}
+		table.CopyFromTo(spawns,tbl)
 
-		timer.Simple(0, function()
-			if #randomspawns == 0 then
-				local points = zb.GetMapPoints("RandomSpawns")
-				if istable(points) and #points > 0 then
-					randomspawns = zb.TranslatePointsToVectors(points)
-				end
-			end
+		local tbladd = MakeRandomSpawns(tbl,0,500,{})
+		local tblnew = zb.TranslateVectorsToPoints(tbladd)
+			
+		zb.SaveMapPoints( "RandomSpawns", tblnew )
+		--zb.SendSpecificPointsToPly(Entity(1), "RandomSpawns", true)
 
-			if #randomspawns == 0 then
-				tbl = {}
-				table.CopyFromTo(spawns, tbl)
+		table.Add(spawns,tbladd)
 
-				local tbladd = MakeRandomSpawns(tbl, 0, 500, {})
-				local tblnew = zb.TranslateVectorsToPoints(tbladd)
-
-				zb.SaveMapPoints("RandomSpawns", tblnew)
-
-				randomspawns = {}
-				table.CopyFromTo(tbladd, randomspawns)
-			end
-
-			table.Add(spawns, randomspawns)
-
-			timer.Create("SpawnTheBoxes", 8, 0, function() hook_Run("Boxes Think") end)
-		end)
+		timer.Create("SpawnTheBoxes", 8, 0, function() hook_Run("Boxes Think") end)
 	end)
 end)
 
@@ -629,71 +609,55 @@ timer.Create("SpawnTheBoxes", 8, 0, function() hook_Run("Boxes Think") end)
 
 local vec = Vector(0, 0, 64)
 local vec_dist = Vector(500,500,500)
-local vec_dist_sqr = 500 * 500
-local tr_los = { mask = MASK_VISIBLE }
-local tr_ground = { mask = MASK_SOLID_BRUSHONLY }
 hook.Add("Boxes Think", "SpawnBoxes", function()
 	if zb.ROUND_STATE ~= 1 or not CurrentRound().LootSpawn then return end
-	if not spawns or #spawns == 0 then return end
+	//local spawnPos = table.Random(spawns) + vec
 
-	local players = {}
-	for _, p in player.Iterator() do
-		if p:Alive() then
-			players[#players + 1] = p
-		end
-	end
-	if #players == 0 then return end
+	//local spawnPos = zb:FurthestFromEveryone(spawns) + vec
+	local tbl = player.GetAll()
+	local ply = tbl[math.random(#tbl)]
+	
+	local vel = ply:GetVelocity() * math.random(1, 100) + VectorRand(-1024, 1024)
+	vel[3] = 0
 
-	local ply = players[math.random(#players)]
-	if not IsValid(ply) then return end
+	local pos = ply:EyePos() 
 
-	local plypos = ply:GetPos()
-	local spawnPos
+	local tr = {}
+	tr.start = pos
+	tr.endpos = pos + vel
+	tr.filter = ply
+	tr.collisiongroup = COLLISION_GROUP_PLAYER
+	local trace = util.TraceLine(tr)
+	
+	maxcount = 8
+	while maxcount > 0 do
+		maxcount = maxcount - 1
+		local tr = {}
+		tr.start = trace.HitPos - trace.Normal * 16
+		local rand = VectorRand(-1024, 1024)
+		tr.endpos = tr.start + rand
+		tr.filter = ply
+		tr.collisiongroup = COLLISION_GROUP_PLAYER
 
-	for i = 1, 10 do
-		local base = spawns[math.random(#spawns)]
-		if not isvector(base) then continue end
-		if base:DistToSqr(plypos) > (6000 * 6000) then continue end
-
-		tr_ground.start = base + vector_up * 64
-		tr_ground.endpos = base - vector_up * 4096
-		tr_ground.filter = ply
-		local gtr = util.TraceLine(tr_ground)
-		local candidate = (gtr and gtr.HitPos or base) + vector_up * 32
-
-		local visible = false
-		if not CurrentRound().noBoxes then
-			for _, p in ipairs(players) do
-				if p:GetPos():DistToSqr(candidate) > vec_dist_sqr then continue end
-				tr_los.start = candidate
-				tr_los.endpos = p:EyePos()
-				local los = util.TraceLine(tr_los)
-				if los and los.Entity == p then
-					visible = true
-					break
-				end
-			end
-		end
-
-		if not visible then
-			spawnPos = candidate
-			break
-		end
+		trace = util.TraceLine(tr)
+		trace = util.QuickTrace(trace.HitPos, -vector_up * 1024, ply)
 	end
 
-	if not spawnPos then
-		local base = spawns[math.random(#spawns)]
-		if not isvector(base) then return end
-		spawnPos = base + vector_up * 32
-	end
+	local spawnPos = trace.HitPos + vector_up * 32 - trace.Normal * 10
 	
 	if not CurrentRound().noBoxes then
-		for _, p in ipairs(players) do
-			if p:GetPos():DistToSqr(spawnPos) > vec_dist_sqr then continue end
-			tr_los.start = spawnPos
-			tr_los.endpos = p:EyePos()
-			local los = util.TraceLine(tr_los)
-			if los and los.Entity == p then return end
+		for k, ply in ipairs(ents.FindInBox(spawnPos - vec_dist,spawnPos + vec_dist)) do
+			if not ply:IsPlayer() then continue end
+			if not ply:Alive() then continue end
+			local tr = util.TraceLine({
+				start = spawnPos,
+				endpos = ply:EyePos(),
+				mask = MASK_VISIBLE
+			})
+			if IsValid(tr.Entity) and tr.Entity == ply then
+				--print("Fuck") 
+				return
+			end
 		end
 	end
 
@@ -765,3 +729,4 @@ for i = 1,100 do
 		huy.AmmoCount = AmmoCount
 	end
 end--]]
+

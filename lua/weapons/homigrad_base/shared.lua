@@ -856,12 +856,11 @@ if CLIENT then
 	local ammoLongCheck = 0
 	SWEP.DrawAmmoMetods = {
 		["Default"] = function(self,texture)
-			local maxClip = tonumber(self:GetMaxClip1()) or 0
-			local clipsize = math.max(maxClip + (self.OpenBolt and 0 or 1), 1)
-			local clip = tonumber(self:Clip1()) or 0
+			local clipsize = self:GetMaxClip1() + (self.OpenBolt and 0 or 1)
+			local clip = self:Clip1()
 			local owner = self:GetOwner()
 			local shoot = CurTime() - self:LastShootTime()
-			local ammo = tonumber(owner:GetAmmoCount(self:GetPrimaryAmmoType())) or 0
+			local ammo = owner:GetAmmoCount(self:GetPrimaryAmmoType())
 			local magCount = self.AnimInsert and ammo or math.ceil(ammo / clipsize)
 			local posX = scrW*0.75
 			local posX2 = scrW*0.8
@@ -896,7 +895,7 @@ if CLIENT then
 			end
 
 			lerpAmmoCheck = LerpFT((ammoCheck > CurTime()) and 0.2 or 0.1, lerpAmmoCheck, ammoCheck > CurTime() and 1 or 0)
-			local Yellow = clip > 0 and (((clipsize / clip) - 1) / (clipsize / 5)) or 0
+			local Yellow = (( clipsize/clip )-1)/(clipsize/5)
 			--print(Yellow)
 			color_bg.r = 55*Yellow
 			--draw.RoundedBox(0,scrW*0.75-(scrH*0.12/2),scrH*0.72,scrH*0.12,scrH*0.18,ColorAlpha(color_black,50))

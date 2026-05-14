@@ -52,17 +52,11 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 
 
 	local vomitVPAng, vecZero = Angle(1, 0, 0), Vector()
-	local util_TraceLine = util.TraceLine
-	local CurTime = CurTime
-	local SysTime = SysTime
-	local math_sin = math.sin
-	local trace_air = { start = nil, endpos = nil, filter = nil }
 	hook.Add("SetupMove", "HG(StartCommand)", function(ply, mv, cmd)
 		--\\ DeltaTime
-			local nowSys = SysTime()
-			ply.LastStartCommand = ply.LastStartCommand or nowSys
-			local delta_time = nowSys - ply.LastStartCommand
-			ply.LastStartCommand = nowSys
+			ply.LastStartCommand = ply.LastStartCommand or SysTime()
+			local delta_time = SysTime() - ply.LastStartCommand--FrameTime()
+			ply.LastStartCommand = SysTime()
 		--//
 
 		if(not IsValid(ply) or not ply:Alive())then
@@ -124,10 +118,8 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 		local wep = ply:GetActiveWeapon()
 		local vel = ply:GetVelocity()
 		local velLen = vel:Length()
-		local timeNow = CurTime()
-		local brainMul = org.brain and org.brain > 0.1 and math_sin(timeNow / 2) or 1
-		local fm = cmd:GetForwardMove() * brainMul
-		local sm = cmd:GetSideMove() * brainMul
+		local fm = cmd:GetForwardMove() * (org.brain and org.brain > 0.1 and math.sin(CurTime() / 2) or 1)
+		local sm = cmd:GetSideMove() * (org.brain and org.brain > 0.1 and math.sin(CurTime() / 2) or 1)
 
 		local slow_walking = ply:KeyDown(IN_WALK)
 		local aiming = ply:KeyDown(IN_ATTACK2) and wep and IsValid(wep) and ishgweapon(wep)
@@ -158,7 +150,7 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 		end
 
 		if org.brain and org.brain > 0.05 then
-			local brainadjust = math.Clamp(((org.brain - 0.05) * math_sin(timeNow + 10) * 20), -2, 2)
+			local brainadjust = org.brain > 0.05 and math.Clamp(((org.brain - 0.05) * math.sin(CurTime() + 10) * 20), -2, 2) or 0
 
 			if brainadjust > 1 then
 				local in_jump = cmd:KeyDown(IN_JUMP)
@@ -183,8 +175,7 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 			end
 		end
 
-		local vomitingUntil = ply:GetNetVar("vomiting", 0)
-		if vomitingUntil > timeNow then
+		if ply:GetNetVar("vomiting", 0) > CurTime() then
 			cmd:AddKey(IN_DUCK)
 			mv:AddKey(IN_DUCK)
 			if ply == lply then ViewPunch(vomitVPAng) end
@@ -314,19 +305,18 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 
 			if((not ply:OnGround()) and (water_level < 1))then
 				if(fm ~= 0 or sm ~=0)then
-					local nextAir = ply._hg_airTraceNext or 0
-					local hitAir = ply._hg_airTraceHit
-					if nextAir <= timeNow then
-						local start_pos = ply:GetPos()
-						trace_air.start = start_pos
-						trace_air.endpos = start_pos + inertia_to / speed * 50
-						trace_air.filter = ply
-						hitAir = util_TraceLine(trace_air).Hit
-						ply._hg_airTraceHit = hitAir
-						ply._hg_airTraceNext = timeNow + 0.1
-					end
+					local start_pos = ply:GetPos()
+					local trace_data = {
+						start = start_pos,
+						endpos = start_pos + inertia_to / speed * 50,
+						filter = ply
+					}
 
-					movement_penalty = hitAir and 1 or 5
+					if(util.TraceLine(trace_data).Hit)then
+						movement_penalty = 1
+					else
+						movement_penalty = 5
+					end
 
 					--if(CLIENT)then
 						speed = speed / movement_penalty
@@ -411,7 +401,7 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 
 		k = math.max(k, 20 / 200)
 
-		if vomitingUntil > (timeNow - 3) then
+		if ply:GetNetVar("vomiting", 0) > (CurTime() - 3) then
 			k = k * 0.25
 		end
 
@@ -434,34 +424,28 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 		end
 
 		if IsValid(ent) then
-			local nextCarry = ply._hg_carryCheckNext or 0
-			if nextCarry <= timeNow then
-				local bon = ply:GetNetVar("carrybone",0) ~= 0 and ply:GetNetVar("carrybone",0) or ply:GetNetVar("carrybone2",0)
-				local bone = ent:TranslatePhysBoneToBone(bon)
-				local mat = ent:GetBoneMatrix(bone)
-				local pos = mat and mat:GetTranslation() or ent:GetPos()
-				local lpos = ply:GetNetVar("carrypos", nil) or ply:GetNetVar("carrypos2", nil)
+			local bon = ply:GetNetVar("carrybone",0) ~= 0 and ply:GetNetVar("carrybone",0) or ply:GetNetVar("carrybone2",0)
+			local bone = ent:TranslatePhysBoneToBone(bon)
+			local mat = ent:GetBoneMatrix(bone)
+			local pos = mat and mat:GetTranslation() or ent:GetPos()
+			local lpos = IsValid(ent) and ply:GetNetVar("carrypos",nil) or ply:GetNetVar("carrypos2",nil)
 
-				if lpos and isvector(lpos) then
-					if not ent:IsRagdoll() then
-						pos = ent:LocalToWorld(lpos)
-					elseif mat then
-						pos = LocalToWorld(lpos, angle_zero, mat:GetTranslation(), mat:GetAngles())
-					end
-				end
-
-				local eyetr = hg.eyeTrace(ply)
-				local dist = pos:DistToSqr(eyetr.StartPos)
-				local reachdist = weapons.GetStored("weapon_hands_sh").ReachDistance + 30
-				if dist > reachdist*reachdist then
-					local moving_to = calc_forward_side_moves_to_vector2d(fm, sm, ply_angles)
-					ply._hg_carryMul = moving_to:Dot((pos - eyetr.StartPos):GetNormalized())
+			if lpos then
+				if not ent:IsRagdoll()then
+					pos = ent:LocalToWorld(lpos)
 				else
-					ply._hg_carryMul = 1
+					pos = LocalToWorld(lpos, angle_zero, mat:GetTranslation(), mat:GetAngles())
 				end
-				ply._hg_carryCheckNext = timeNow + 0.1
 			end
-			k = k * (ply._hg_carryMul or 1)
+
+			local eyetr = hg.eyeTrace(ply)
+			local dist = pos:DistToSqr(eyetr.StartPos)
+			local reachdist = weapons.GetStored("weapon_hands_sh").ReachDistance + 30
+			if dist > reachdist*reachdist then
+				local moving_to = calc_forward_side_moves_to_vector2d(fm, sm, ply_angles)
+				local dot = moving_to:Dot((pos - eyetr.StartPos):GetNormalized())
+				k = k * dot
+			end
 		end
 
 		move = move * k

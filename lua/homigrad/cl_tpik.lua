@@ -1041,8 +1041,6 @@ function hg.DoTPIK(ply, ent)
             ply.leftClicking = LerpFT(0.05, ply.leftClicking or 0, (ishgweapon(self) and hg.KeyDown(ply, IN_ATTACK)) and 1 or 0.05)
 
             local hand = ply_r_hand_matrix:GetTranslation()
-            segments[3] = segments[3] or {Pos = hand, Len = limblength}
-            if not isvector(segments[3].Pos) then segments[3].Pos = hand end
 
             if false and !ishgweapon(self) and ply.organism and ply.organism.rarm and ply.organism.rarm > 0.99 then
                 segments[3] = segments[3] or {Pos = hand, Len = limblength}
@@ -1068,16 +1066,14 @@ function hg.DoTPIK(ply, ent)
             ply.segmentsr = segments
         end
 
-        local pos1 = (segments[1] and isvector(segments[1].Pos)) and segments[1].Pos or ply_r_upperarm_matrix:GetTranslation()
-        local pos2 = (segments[2] and isvector(segments[2].Pos)) and segments[2].Pos or ply_r_forearm_matrix:GetTranslation()
-        local pos3 = (segments[3] and isvector(segments[3].Pos)) and segments[3].Pos or ply_r_hand_matrix:GetTranslation()
+        local new = -(-segments[3].Pos)
 
-        ply_r_upperarm_matrix:SetTranslation(pos1)
-        ply_r_forearm_matrix:SetTranslation(pos2)
-        ply_r_hand_matrix:SetTranslation(pos3)
+        ply_r_upperarm_matrix:SetTranslation(segments[1].Pos)
+        ply_r_forearm_matrix:SetTranslation(segments[2].Pos)
+        ply_r_hand_matrix:SetTranslation(new)
 
 
-        local diff = (pos2 - pos1):GetNormalized()
+        local diff = (segments[2].Pos - segments[1].Pos):GetNormalized()
         local angrr = diff:Angle()
         local angle2 = math.deg(math.atan2(-math.sqrt(diff.x * diff.x + diff.y * diff.y), diff.z)) - 90
         local angle3 = -math.deg(math.atan2(diff.x, diff.y)) - 90
@@ -1093,7 +1089,7 @@ function hg.DoTPIK(ply, ent)
 
         ply_r_upperarm_matrix:SetAngles(ang)
 
-        local diff = (pos3 - pos2):GetNormalized()
+        local diff = (segments[3].Pos - segments[2].Pos):GetNormalized()
         local angrr = diff:Angle()
         local angle2 = math.deg(math.atan2(-math.sqrt(diff.x * diff.x + diff.y * diff.y), diff.z)) - 90
         local angle3 = -math.deg(math.atan2(diff.x, diff.y)) - 90
@@ -1180,8 +1176,6 @@ function hg.DoTPIK(ply, ent)
             end
 
             local hand = ply_l_hand_matrix:GetTranslation()
-            segments[3] = segments[3] or {Pos = hand, Len = limblength}
-            if not isvector(segments[3].Pos) then segments[3].Pos = hand end
             local add = (hand - segments[1].Pos):GetNormalized() * 5 + eyeang:Right() * -5 + eyeang:Forward() * ((ply.lerp_hand or 0) - 0.5) * 10
 
             if ply.organism and ply.organism.larm and ply.organism.larm > 0.99 and ishgweapon(self) and !self.reload and ishgweapon(self) then
@@ -1208,15 +1202,13 @@ function hg.DoTPIK(ply, ent)
             ply.segmentsl = segments
         end
 
-        local pos1 = (segments[1] and isvector(segments[1].Pos)) and segments[1].Pos or ply_l_upperarm_matrix:GetTranslation()
-        local pos2 = (segments[2] and isvector(segments[2].Pos)) and segments[2].Pos or ply_l_forearm_matrix:GetTranslation()
-        local pos3 = (segments[3] and isvector(segments[3].Pos)) and segments[3].Pos or ply_l_hand_matrix:GetTranslation()
+        local new = -(-segments[3].Pos)
 
-        ply_l_upperarm_matrix:SetTranslation(pos1)
-        ply_l_forearm_matrix:SetTranslation(pos2)
-        ply_l_hand_matrix:SetTranslation(pos3)
+        ply_l_upperarm_matrix:SetTranslation(segments[1].Pos)
+        ply_l_forearm_matrix:SetTranslation(segments[2].Pos)
+        ply_l_hand_matrix:SetTranslation(new)
 
-        local diff = (pos2 - pos1):GetNormalized()
+        local diff = (segments[2].Pos - segments[1].Pos):GetNormalized()
         local angrr = diff:Angle()
         local angle2 = math.deg(math.atan2(-math.sqrt(diff.x * diff.x + diff.y * diff.y), diff.z)) - 90
         local angle3 = -math.deg(math.atan2(diff.x, diff.y)) - 90
@@ -1231,7 +1223,7 @@ function hg.DoTPIK(ply, ent)
         local ang = q:Angle()
         ply_l_upperarm_matrix:SetAngles(ang)
 
-        local diff = (pos3 - pos2):GetNormalized()
+        local diff = (segments[3].Pos - segments[2].Pos):GetNormalized()
         local angrr = diff:Angle()
         local angle2 = math.deg(math.atan2(-math.sqrt(diff.x * diff.x + diff.y * diff.y), diff.z)) - 90
         local angle3 = -math.deg(math.atan2(diff.x, diff.y)) - 90

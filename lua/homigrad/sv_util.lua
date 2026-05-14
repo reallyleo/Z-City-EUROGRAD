@@ -850,14 +850,11 @@ function hgBlastThatDoor(ent, vel) -- taken from JMod
 end
 
 hook.Add( "OnEntityCreated", "VechicleChairs", function( ent )
-	if not IsValid(ent) then return end
-	local class = ent:GetClass()
-	if class ~= "prop_vehicle_airboat" and not ent:IsVehicle() then return end
-
-	timer.Simple(0, function()
-		if not IsValid(ent) then return end
-		if ent.SetVehicleEntryAnim then
-			ent:SetVehicleEntryAnim(false)
+	timer.Simple(0.1,function()
+		if IsValid(ent) and ent:IsVehicle() and ent.IsValidVehicle and ent:IsValidVehicle() then
+			if ent:IsVehicle() and ent.IsValidVehicle and ent:IsValidVehicle() and ent.SetVehicleEntryAnim then
+				ent:SetVehicleEntryAnim(false)
+			end
 		end
 	end)
 	
@@ -879,10 +876,7 @@ hook.Add( "OnEntityCreated", "VechicleChairs", function( ent )
 	if ent:GetClass() == "prop_vehicle_airboat" then
 		timer.Simple(0.1, function()
 			if !IsValid(ent) then return end
-			local phys = ent:GetPhysicsObject()
-			if IsValid(phys) then
-				phys:SetMass(phys:GetMass() * 2)
-			end
+			ent:GetPhysicsObject():SetMass(ent:GetPhysicsObject():GetMass() * 2)
 			for i = 1, 4 do
 				local entang = ent:GetAngles()
 				local pos = ent:GetPos() + entang:Right() * 25 * i + entang:Forward() * 25 + entang:Up() * 20 + entang:Right() * -60
@@ -1829,29 +1823,21 @@ end
 local hook_Run = hook.Run
 
 hook.Add("PlayerTick", "ilovefurries", function(ply)
-	local tick = engine.TickCount()
-	if ply._hg_lastPlayerThinkTick == tick then return end
-	ply._hg_lastPlayerThinkTick = tick
-
-	local now = SysTime()
-	ply.lastcall_tick = ply.lastcall_tick or (now - 0.01)
-	local dtime = now - ply.lastcall_tick
-	ply.lastcall_tick = now
+	ply.lastcall_tick = ply.lastcall_tick or SysTime() - 0.01
+	local dtime = SysTime() - ply.lastcall_tick
 
 	hook_Run("Player Think", ply, CurTime(), dtime)
+
+	ply.lastcall_tick = SysTime()
 end)
 
 hook.Add("VehicleMove", "ilovefurries", function(ply, veh, mv)
-	local tick = engine.TickCount()
-	if ply._hg_lastPlayerThinkTick == tick then return end
-	ply._hg_lastPlayerThinkTick = tick
-
-	local now = SysTime()
-	ply.lastcall_tick = ply.lastcall_tick or (now - 0.01)
-	local dtime = now - ply.lastcall_tick
-	ply.lastcall_tick = now
+	ply.lastcall_tick = ply.lastcall_tick or SysTime() - 0.01
+	local dtime = SysTime() - ply.lastcall_tick
 
 	hook_Run("Player Think", ply, CurTime(), dtime)
+
+	ply.lastcall_tick = SysTime()
 end)
 
 hook.Add("Player Think", "homigrad-viewoffset", function(ply)

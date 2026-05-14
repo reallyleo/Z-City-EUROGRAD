@@ -222,15 +222,8 @@ function GM:PlayerSpawn(ply)
 
     if CurrentRound() and not CurrentRound().OverrideSpawn then
         ply:SetTeam(1001)
-        local teamToSet = zb:BalancedChoice(0, 1)
-        ply:SetTeam(teamToSet)
-
-        timer.Simple(0, function()
-            if not IsValid(ply) then return end
-            if OverrideSpawn then return end
-            if CurrentRound() and CurrentRound().OverrideSpawn then return end
-            ApplyAppearance(ply, nil, nil, nil, true)
-        end)
+        ApplyAppearance(ply,nil,nil,nil,true)
+        ply:SetTeam(zb:BalancedChoice(0, 1))
     end
 
 end
