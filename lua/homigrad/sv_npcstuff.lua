@@ -356,11 +356,37 @@ local math_random, math_Rand = math.random, math.Rand
 
 --\\ Fall damage for NPCs
 	local vecforce = Vector(5000, 5000, -30000)
+	local trackedNPCs = {}
+	local function trackNPC(ent)
+		if not IsValid(ent) or not ent:IsNPC() then return end
+		if not lootNPCs[ent:GetClass()] then return end
+		trackedNPCs[ent] = true
+	end
+
+	hook.Add("OnEntityCreated", "NPCFallDamageTracker_Track", function(ent)
+		timer.Simple(0, function()
+			trackNPC(ent)
+		end)
+	end)
+
+	hook.Add("EntityRemoved", "NPCFallDamageTracker_Untrack", function(ent)
+		if trackedNPCs[ent] then
+			trackedNPCs[ent] = nil
+		end
+	end)
+
+	local nextThink = 0
 	hook.Add("Think", "NPCFallDamageTracker", function()
 		if hg_noorganismnpcs:GetBool() then return end
-		for _, npc in ipairs(ents.GetAll()) do
-			if not IsValid(npc) then continue end
-			if not npc:IsNPC() or not lootNPCs[npc:GetClass()] then continue end
+		local now = CurTime()
+		if nextThink > now then return end
+		nextThink = now + 0.1
+
+		for npc in pairs(trackedNPCs) do
+			if not IsValid(npc) then
+				trackedNPCs[npc] = nil
+				continue
+			end
 
 			local zPos = npc:GetPos().z
 			if npc:IsOnGround() then
