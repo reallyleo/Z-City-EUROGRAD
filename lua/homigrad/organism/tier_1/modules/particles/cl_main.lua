@@ -11,6 +11,7 @@ hook.Add("PreDrawEffects", "bloodpartciels", function()
 	local time = CurTime()
 	local fps = 1 / hg_blood_fps:GetInt()-- / game.GetTimeScale()
 	if not bloodparticles_hook then return end
+	if (not hg.bloodparticles1 or #hg.bloodparticles1 == 0) and (not hg.bloodparticles2 or #hg.bloodparticles2 == 0) then return end
 	local animpos = math_min((delay - time) / fps, 1)
 	if not bloodparticles_hook[1] then return end
 	

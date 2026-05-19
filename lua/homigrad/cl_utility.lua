@@ -575,10 +575,13 @@ players : 1 humans, 0 bots (20 max)
 	local math_rad = math.rad
 	local util_DistanceToLine = util.DistanceToLine
 	local table_Add = table.Add
+	local table_Empty = table.Empty
+	local seenCheckNext = 0
 
 	hook.Add("Think", "CanBeSeenOrNot", function()
-		--if checkcd > CurTime() then return end
-		--checkcd = CurTime() + 1
+		local ct = CurTime()
+		if seenCheckNext > ct then return end
+		seenCheckNext = ct + 0.1
 		local entities = ents_FindByClass("prop_ragdoll")
 		table_Add(entities, player_GetAll())
 
@@ -589,14 +592,18 @@ players : 1 humans, 0 bots (20 max)
 			table.insert(entities, ent)
 		end
 
-		hg.seenents = {}
-		hg.seenents2 = {}
+		hg.seenents = hg.seenents or {}
+		hg.seenents2 = hg.seenents2 or {}
+		table_Empty(hg.seenents)
+		table_Empty(hg.seenents2)
 
 		if g_VR and g_VR.active then return end
 
 		local view = render_GetViewSetup()
 		local origin = view.origin
 		local angles = view.angles
+		local forward = angles:Forward()
+		local cosFov = math_cos(math_rad(hg_fov:GetInt()))
 
 		for i = 1, #entities do
 			v = entities[i]
@@ -619,7 +626,7 @@ players : 1 humans, 0 bots (20 max)
 			local vSize = (point - vPos):GetNormalized() * len
 			local diff = (vPos + vSize - origin):GetNormalized()
 
-			if !v.shouldTransmit or (angles:Forward():Dot(diff) <= math_cos(math_rad(hg_fov:GetInt()))) then
+			if !v.shouldTransmit or (forward:Dot(diff) <= cosFov) then
 				if not nochange then v.NotSeen = true end
 				if v == lply then LocalPlayerSeen = false end
 			else

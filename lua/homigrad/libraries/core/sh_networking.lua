@@ -7,6 +7,39 @@ if (CLIENT) then
     zb.net = zb.net or {}
     zb.net.globals = zb.net.globals or {}
 
+	net.Receive("zbFullUpdate", function()
+		local globals = net.ReadTable()
+		local locals = net.ReadTable()
+		local netvars = net.ReadTable()
+
+		zb.net.globals = zb.net.globals or {}
+		for key, var in pairs(globals or {}) do
+			zb.net.globals[key] = var
+			hook.Run("OnGlobalVarSet", key, var)
+		end
+
+		local localIndex = LocalPlayer():EntIndex()
+		zb.net[localIndex] = zb.net[localIndex] or {}
+		for key, var in pairs(locals or {}) do
+			zb.net[localIndex][key] = var
+			hook.Run("OnLocalVarSet", key, var)
+		end
+
+		for index, data in pairs(netvars or {}) do
+			zb.net[index] = zb.net[index] or {}
+
+			for key, var in pairs(data or {}) do
+				zb.net[index][key] = var
+
+				if IsValid(Entity(index)) then
+					hook.Run("OnNetVarSet", index, key, var)
+				else
+					zb.net[index].waiting = true
+				end
+			end
+		end
+	end)
+
     net.Receive("zbGlobalVarSet", function()
         local key, var = net.ReadString(), net.ReadType()
 
@@ -75,21 +108,19 @@ if (CLIENT) then
 	end
 else
 	util.AddNetworkString("ZB_request_fullupdate")
+	util.AddNetworkString("zbFullUpdate")
 
 	net.Receive("ZB_request_fullupdate",function(len,ply)
-		ply.cooldown_sendnet = ply.cooldown_sendnet or 0
-		if ply.cooldown_sendnet < CurTime() then
-			ply.cooldown_sendnet = CurTime() + 1
-
-			ply:SyncVars()
-		end
+		if not IsValid(ply) or not ply.SyncVars then return end
+		ply:SyncVars()
 	end)
 
 	gameevent.Listen( "OnRequestFullUpdate" )
 	hook.Add("OnRequestFullUpdate", "OnRequestFullUpdate_zb", function(data)
-		local id = data.userid
-		local ply = Player(id)
-		
+		local id = data and data.userid
+		local ply = id and Player(id) or nil
+		if not IsValid(ply) or not ply.SyncVars then return end
+
 		ply:SyncVars()
 	end)
 	
@@ -146,35 +177,26 @@ else
     end
 	
     function playerMeta:SyncVars()
-    	for k, v in pairs(zb.net.globals) do
-    		net.Start("zbGlobalVarSet")
-    			net.WriteString(k)
-    			net.WriteType(v)
-    		net.Send(self)
-    	end
+		if not IsValid(self) then return end
 
-    	for k, v in pairs(zb.net.locals[self] or {}) do
-    		net.Start("zbLocalVarSet")
-    			net.WriteString(k)
-    			net.WriteType(v)
-    		net.Send(self)
-    	end
+		self.cooldown_sendnet = self.cooldown_sendnet or 0
+		if self.cooldown_sendnet >= CurTime() then return end
+		self.cooldown_sendnet = CurTime() + 1
 
-    	for entity, data in pairs(zb.net.list) do
-    		if (IsValid(entity)) then
-    			local index = entity:EntIndex()
-
-    			for k, v in pairs(data) do
-    				net.Start("zbNetVarSet")
-    					net.WriteUInt(index, 16)
-    					net.WriteString(k)
-    					net.WriteType(v)
-    				net.Send(self)
-    			end
+		local netvars = {}
+		for entity, data in pairs(zb.net.list) do
+			if IsValid(entity) then
+				netvars[entity:EntIndex()] = data
 			else
 				zb.net.list[entity] = nil
-    		end
-    	end
+			end
+		end
+
+		net.Start("zbFullUpdate")
+			net.WriteTable(zb.net.globals)
+			net.WriteTable(zb.net.locals[self] or {})
+			net.WriteTable(netvars)
+		net.Send(self)
     end
 	
     function playerMeta:GetLocalVar(key, default)

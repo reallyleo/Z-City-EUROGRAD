@@ -60,18 +60,18 @@ function ENT:Think()
 				local mode_hmcd = (zb and zb.modes) and zb.modes["hmcd"]
 				
 				if mode_hmcd then
-					if(ent.SubRole == "traitor_chemist")then
-						local ply_cyanide_accumulated = AddChemicalToPlayer(ent, "HCN", 10)
+					if (ent.SubRole == "traitor_chemist") or (ent.Profession == "chemworker") then
+						local add = (ent.SubRole == "traitor_chemist") and 10 or 5
+						local threshold = (ent.SubRole == "traitor_chemist") and 100 or 60
+						local ply_cyanide_accumulated = AddChemicalToPlayer(ent, "HCN", add)
 						
-						if(ply_cyanide_accumulated > 100)then
+						if ply_cyanide_accumulated > threshold then
 							ent.organism.poison3 = CurTime()
 						end
 						
 						NetworkChemicalResistanceOfPlayer(ent)
 						
 						ent.PassiveAbility_ChemicalAccumulation_NextNetworkTime = CurTime() + 1
-						
-						-- ent:ChatPrint("cyanide = " .. math.Round(ply_cyanide_accumulated) .. " / " .. "10")
 					else
 						ent.organism.poison3 = CurTime()
 					end

@@ -1,4 +1,4 @@
-﻿AddCSLuaFile()
+AddCSLuaFile()
 --
 local surface_hardness = {
 	[MAT_METAL] = 1,
@@ -325,6 +325,31 @@ local allowedMats = {
 	[MAT_CONCRETE] = true,
 	[MAT_METAL] = true
 }
+
+local pendingBulletCallbacks = pendingBulletCallbacks or {}
+local pendingBulletCallbacksScheduled = false
+local pendingBulletCallbacksTick = 0
+local function flushPendingBulletCallbacks()
+	pendingBulletCallbacksScheduled = false
+	local list = pendingBulletCallbacks
+	pendingBulletCallbacks = {}
+
+	for i = 1, #list do
+		local item = list[i]
+		if item and item.bullet then
+			callbackBullet(item.weapon, item.tr, item.dmg, item.force, item.bullet, item.penetration)
+		end
+	end
+end
+
+if SERVER then
+	hook.Add("Think", "hg_flushPendingBulletCallbacks", function()
+		if not pendingBulletCallbacksScheduled then return end
+		if engine.TickCount() < pendingBulletCallbacksTick then return end
+		flushPendingBulletCallbacks()
+	end)
+end
+
 bulletHit = function(ply, tr, dmgInfo, bullet, Weapon)
 	if CLIENT then return end
 	local inflictor = IsValid(ply) and not ply:IsNPC() and ply.GetActiveWeapon and ply:GetActiveWeapon() or dmgInfo:GetInflictor()
@@ -357,10 +382,27 @@ bulletHit = function(ply, tr, dmgInfo, bullet, Weapon)
 		dmgInfo:SetDamage(dmgInfo:GetDamage() * dmgmul)
 	end
 
-	timer.Simple(0,function()
-		if not bullet then return end
-		callbackBullet(Weapon or inflictor, tr, dmg, force, bullet, penetration, penmul)
-	end)
+	local tr2 = {
+		Normal = tr.Normal,
+		HitNormal = tr.HitNormal,
+		HitPos = tr.HitPos,
+		MatType = tr.MatType,
+		Entity = tr.Entity
+	}
+
+	pendingBulletCallbacks[#pendingBulletCallbacks + 1] = {
+		weapon = Weapon or inflictor,
+		tr = tr2,
+		dmg = dmg,
+		force = force,
+		bullet = bullet,
+		penetration = penetration
+	}
+
+	if not pendingBulletCallbacksScheduled then
+		pendingBulletCallbacksScheduled = true
+		pendingBulletCallbacksTick = engine.TickCount() + 1
+	end
 end
 
 hg.bulletHit = bulletHit

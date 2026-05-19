@@ -578,19 +578,22 @@ hook.Add("PostCleanupMap", "addboxs", function()
 	if timer.Exists("SpawnTheBoxes") then timer.Remove("SpawnTheBoxes") end
 	timer.Simple(.5,function()
 		spawns = {}
-		for i, ent in pairs(ents.FindByClass("info_*")) do
-			table.insert(spawns, ent:GetPos())
+		local spawnsCount = 0
+		for _, ent in ipairs(ents.FindByClass("info_*")) do
+			spawnsCount = spawnsCount + 1
+			spawns[spawnsCount] = ent:GetPos()
 		end
-		
-		local navmeshareas = navmesh.GetAllNavAreas()
-		for i, k in pairs(navmeshareas) do
-			if k:IsUnderwater() then continue end
 
-			table.insert(spawns,k:GetCenter())
+		for i = 1, #navmeshareas do
+			local area = navmeshareas[i]
+			if area:IsUnderwater() then continue end
+
+			spawnsCount = spawnsCount + 1
+			spawns[spawnsCount] = area:GetCenter()
 		end
 
 		tbl = {}
-		table.CopyFromTo(spawns,tbl)
+		table.CopyFromTo(spawns, tbl)
 
 		local tbladd = MakeRandomSpawns(tbl,0,500,{})
 		local tblnew = zb.TranslateVectorsToPoints(tbladd)

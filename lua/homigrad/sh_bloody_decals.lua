@@ -116,6 +116,10 @@ net.Receive("bloody_decal_1", function()
 	local self = net.ReadEntity()
 
 	if IsValid(self) then
+		local ct = CurTime()
+		if (self._bloodDecalCD or 0) > ct then return end
+		self._bloodDecalCD = ct + 0.05
+
 		local mdl = self.worldModel2
 		mdl = IsValid(mdl) and mdl or self.worldModel
 		mdl = IsValid(mdl) and mdl or self.NPCworldModel

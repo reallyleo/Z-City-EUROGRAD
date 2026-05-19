@@ -270,10 +270,35 @@ MODE.Professions = {
 			--; It's a bad practice to give professions any weapons or tools
 		end,
 	},
+	["paramedic"] = {
+		Name = "Paramedic",
+		SpawnFunction = function(ply)
+		end,
+	},
 	["huntsman"] = {
 		Name = "Huntsman",
 		SpawnFunction = function(ply)
 			--; It's a bad practice to give professions any weapons or tools
+		end,
+	},
+	["locksmith"] = {
+		Name = "Locksmith",
+		SpawnFunction = function(ply)
+		end,
+	},
+	["security"] = {
+		Name = "Security Guard",
+		SpawnFunction = function(ply)
+		end,
+	},
+	["courier"] = {
+		Name = "Courier",
+		SpawnFunction = function(ply)
+		end,
+	},
+	["chemworker"] = {
+		Name = "Chem Plant Worker",
+		SpawnFunction = function(ply)
 		end,
 	},
 	["engineer"] = {
@@ -319,7 +344,22 @@ MODE.RoleChooseRoundTypes = {
 			["doctor"] = {
 				Chance = 1,
 			},
+			["paramedic"] = {
+				Chance = 1,
+			},
 			["huntsman"] = {
+				Chance = 1,
+			},
+			["locksmith"] = {
+				Chance = 1,
+			},
+			["security"] = {
+				Chance = 1,
+			},
+			["courier"] = {
+				Chance = 1,
+			},
+			["chemworker"] = {
 				Chance = 1,
 			},
 			["engineer"] = {
@@ -346,7 +386,22 @@ MODE.RoleChooseRoundTypes = {
 			["doctor"] = {
 				Chance = 1,
 			},
+			["paramedic"] = {
+				Chance = 1,
+			},
 			["huntsman"] = {
+				Chance = 1,
+			},
+			["locksmith"] = {
+				Chance = 1,
+			},
+			["security"] = {
+				Chance = 1,
+			},
+			["courier"] = {
+				Chance = 1,
+			},
+			["chemworker"] = {
 				Chance = 1,
 			},
 			["engineer"] = {

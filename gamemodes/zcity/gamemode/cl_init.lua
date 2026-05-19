@@ -675,6 +675,51 @@ function GM:ScoreboardShow()
 		local lengthX, lengthY = surface.GetTextSize(txt)
 		surface.SetTextPos(w * 0.5 - lengthX/2,ScreenScale(25))
 		surface.DrawText(txt)
+
+		local curRound = zb and zb.CROUND or nil
+		local mainRound = curRound
+		if zb and zb.modes and curRound and not zb.modes[curRound] then
+			for name, mode in pairs(zb.modes) do
+				if mode and mode.Types and mode.Types[curRound] then
+					mainRound = name
+					break
+				end
+			end
+		end
+
+		if mainRound == "hmcd" and zb and zb.ROUND_STATE == 1 then
+			local responseEnabled = GetGlobalBool("HMCD_ResponseEnabled", false)
+			if responseEnabled then
+				local label = GetGlobalString("HMCD_ResponseLabel", "Police")
+				local spawned = GetGlobalBool("HMCD_ResponseSpawned", false)
+				local eta = GetGlobalFloat("HMCD_ResponseETA", 0)
+
+				local lines = {}
+				if spawned then
+					lines[#lines + 1] = label .. " have arrived."
+				else
+					local remaining = math.max(0, eta - CurTime())
+					lines[#lines + 1] = string.FormattedTime(remaining, "%02i:%02i:%02i") .. " until " .. label .. " arrives"
+				end
+
+				local swatEta = GetGlobalFloat("HMCD_SWATETA", 0)
+				if swatEta and swatEta > 0 then
+					local remaining = math.max(0, swatEta - CurTime())
+					lines[#lines + 1] = string.FormattedTime(remaining, "%02i:%02i:%02i") .. " until SWAT arrives"
+				end
+
+				surface.SetFont("ZB_InterfaceMediumLarge")
+				surface.SetTextColor(col.r, col.g, col.b, col.a)
+				local y = ScreenScale(35)
+				for i = 1, #lines do
+					local text = lines[i]
+					local lw, lh = surface.GetTextSize(text)
+					surface.SetTextPos(w * 0.5 - lw / 2, y)
+					surface.DrawText(text)
+					y = y + lh
+				end
+			end
+		end
 	end
 	-- TEAMSELECTION
 	if LocalPlayer():Team() ~= TEAM_SPECTATOR then

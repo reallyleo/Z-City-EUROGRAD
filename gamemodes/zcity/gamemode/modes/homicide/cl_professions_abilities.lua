@@ -28,7 +28,8 @@ local footMat2 = Material("dog_swep/footprint2")
 function MODE.IsRoundTypeSuitableForProfessions()
 	mode_type = MODE.Type or mode_type
 
-	return zb.CROUND == "hmcd"-- and MODE.ProfessionsRoundTypes[mode_type]
+	if not zb then return false end
+	return zb.CROUND_MAIN == "hmcd" or zb.CROUND == "hmcd"
 end
 
 --\\Use these and only these functions to address MODE.FootSteps, otherwise it will break
@@ -202,4 +203,48 @@ hook.Add("radialOptions", "EngineerCraft", function()
         	hg.radialOptions[#hg.radialOptions + 1] = tbl
 		end
     end
+end)
+
+local function isDoor(ent)
+	if not IsValid(ent) then return false end
+	if hgIsDoor and hgIsDoor(ent) then return true end
+	return string.find(string.lower(ent:GetClass() or ""), "door", 1, true) ~= nil
+end
+
+local function isDoorLocked(ent)
+	if not IsValid(ent) then return false end
+
+	if ent.GetInternalVariable then
+		local ok, res = pcall(ent.GetInternalVariable, ent, "m_bLocked")
+		if ok and res ~= nil then
+			return tobool(res)
+		end
+	end
+
+	return ent:GetNWBool("HMCD_LocksmithLocked", false)
+end
+
+hook.Add("radialOptions", "LocksmithDoors", function()
+	local ply = LocalPlayer()
+	local organism = ply.organism or {}
+
+	if not ply:Alive() or organism.otrub or ply.Profession ~= "locksmith" then return end
+
+	local ent = hg.eyeTrace(ply, 80).Entity
+	if not isDoor(ent) then return end
+
+	local locked = isDoorLocked(ent)
+	if not locked then
+		hg.radialOptions[#hg.radialOptions + 1] = {function()
+			net.Start("HMCD_LocksmithDoorAction")
+				net.WriteBool(true)
+			net.SendToServer()
+		end, "Lock door"}
+	else
+		hg.radialOptions[#hg.radialOptions + 1] = {function()
+			net.Start("HMCD_LocksmithDoorAction")
+				net.WriteBool(false)
+			net.SendToServer()
+		end, "Unlock door"}
+	end
 end)

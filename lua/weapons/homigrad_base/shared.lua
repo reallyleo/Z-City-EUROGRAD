@@ -523,7 +523,7 @@ function SWEP:PrimaryAttack(broadcast)
 		net.WriteEntity(self)
 		net.WriteBool(huy)
 		net.WriteBool(broadcast)
-		net.Broadcast()
+		net.SendPVS(self:GetPos())
 	end
 end
 
@@ -1176,9 +1176,18 @@ function SWEP:CoreStep()
 
 	if SERVER then
 		self.Supressor = (self:HasAttachment("barrel", "supressor") and true) or self.SetSupressor
-		
-		self:SetNWBool("Supressor", self.Supressor and true or false) -- reminder to self: nil is not false
-		self:SetNWInt("Clip1", self:Clip1())
+
+		local sup = self.Supressor and true or false
+		if self._lastNWSupressor ~= sup then
+			self._lastNWSupressor = sup
+			self:SetNWBool("Supressor", sup)
+		end
+
+		local clip = self:Clip1()
+		if self._lastNWClip1 ~= clip then
+			self._lastNWClip1 = clip
+			self:SetNWInt("Clip1", clip)
+		end
 	else
 		self:SetClip1(self:GetNWInt("Clip1", self:Clip1()))
 	end

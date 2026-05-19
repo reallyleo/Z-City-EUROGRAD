@@ -1,4 +1,4 @@
-﻿hg.bloodparticles1 = hg.bloodparticles1 or {}
+hg.bloodparticles1 = hg.bloodparticles1 or {}
 bloodparticles_hook = bloodparticles_hook or {}
 
 local tr = {
@@ -33,25 +33,20 @@ local lightcolor = Color(0, 0, 0, 255)
 bloodparticles_hook[1] = function(anim_pos, mul)
 	 
 	local int = hg_blood_draw_distance:GetInt()
-	local pos = lply:EyePos()
+	local lplypos = lply:EyePos()
 	--render.OverrideBlend( true, BLEND_SRC_ALPHA, BLEND_ONE, BLENDFUNC_ADD )
 	local dstsqr = int * int
-	local lplypos = LocalPlayer():EyePos()
-	local lplyang = LocalPlayer():EyeAngles():Forward()
+	local lplyang = lply:EyeAngles():Forward()
 	for i = 1, #hg.bloodparticles1 do
 		local part = hg.bloodparticles1[i]
 		if not part then continue end
-		if (pos - lplypos):Dot(lplyang) < 0 then continue end
-		if (part[2] - pos):LengthSqr() > dstsqr then continue end
+		if (part[2] - lplypos):Dot(lplyang) < 0 then continue end
+		if (part[2] - lplypos):LengthSqr() > dstsqr then continue end
 		--if !hg.isVisible(part[1],LocalPlayer():GetShootPos(),LocalPlayer(),MASK_VISIBLE) then continue end
 		--render_SetMaterial(part[4])
 		local pos = LerpVector(anim_pos, part[2], part[1])
 		
-		local light1 = render.GetLightColor(pos)
-		local light2 = render.ComputeLighting(pos, vector_up * 1)
-		local light3 = render.ComputeDynamicLighting(pos, vector_up * 1)
-
-		local light = (light1 + light2 + light3) * 3
+		local light = render_GetLightColor(pos)
 
 		if part.kishki then
 			render_SetMaterial(part[4])

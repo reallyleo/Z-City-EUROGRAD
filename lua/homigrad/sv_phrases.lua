@@ -287,6 +287,16 @@ hook.Add("PlayerSpawn","GiveRandomPitch",function(ply)
 end)
 
 util.AddNetworkString("hg_phrase")
+local phraseDurations = phraseDurations or {}
+local function getPhraseDuration(phrase)
+	local dur = (hg.precachedsounds and hg.precachedsounds[phrase]) or phraseDurations[phrase]
+	if dur == nil then
+		dur = SoundDuration(phrase) or 0
+		phraseDurations[phrase] = dur
+	end
+	return dur
+end
+
 net.Receive("hg_phrase", function(len, ply)
 	if (ply.phrCld or 0) > CurTime() then return end
 	local result = hook.Run("HG_CanDoPhrase", ply, cmd, args) // return here true to reject phrase 
@@ -363,7 +373,9 @@ net.Receive("hg_phrase", function(len, ply)
 		return
 	end
 
-	if SoundDuration(phrase) == 0 then return end
+	local isOgg = string.match(phrase, ".ogg")
+	local dur = getPhraseDuration(phrase)
+	if dur <= 0 and not isOgg then return end
 
 	local wawer = string.match(ply:GetModel(), "scug")
 	if wawer then
@@ -373,10 +385,10 @@ net.Receive("hg_phrase", function(len, ply)
 		ent:EmitSound(phrase, muffed and 65 or 75,ply.VoicePitch or 100,1,CHAN_AUTO,0, pitch and 56 or muffed and 14 or 0)
 	end
 
-	if string.match( phrase, ".ogg" ) then // ogg doesn't return the right soundduration
+	if isOgg then // ogg doesn't return the right soundduration
 		ply.phrCld = CurTime() + 1
 	else
-		ply.phrCld = CurTime() + (SoundDuration(phrase) or 0)
+		ply.phrCld = CurTime() + dur
 	end
 	ply.lastPhr = phrase
 end)

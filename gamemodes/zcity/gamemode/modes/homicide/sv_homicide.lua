@@ -316,7 +316,7 @@ MODE.Types.standard = {
 		ply:SetNetVar("Inventory",inv)
 	end,
 	GunManLoot = function(ply)
-		ply:Give("weapon_px4beretta")
+		ply:Give((math.random(1, 2) == 1 and "weapon_px4beretta") or "weapon_m9beretta")
 		ply.organism.recoilmul = 1
 	end,
 	PoliceTime = 220,
@@ -601,11 +601,20 @@ MODE.Types.soe = {
 		ply:SetNetVar("Inventory",inv)
 	end,
 	GunManLoot = function(ply)
-		local gun = ply:Give( ( math.random(1,2) > 1 and "weapon_remington870" ) or "weapon_kar98" )
-		ply.organism.recoilmul = 1.0
-		if gun:GetClass() == "weapon_kar98" then
-			hg.AddAttachmentForce(ply,gun,"optic12")
+		local gun
+		if math.random(1, 2) == 1 then
+			gun = ply:Give((math.random(1, 2) == 1 and "weapon_remington870") or "weapon_m590a1")
+		else
+			gun = ply:Give((math.random(1, 2) == 1 and "weapon_kar98") or "weapon_sks")
+			if IsValid(gun) and hg and hg.AddAttachmentForce and hg.GiveAttachment then
+				if gun:GetClass() == "weapon_kar98" then
+					hg.AddAttachmentForce(ply, gun, "optic12")
+				elseif gun:GetClass() == "weapon_sks" then
+					hg.GiveAttachment(ply, "ent_att_holo6fur")
+				end
+			end
 		end
+		ply.organism.recoilmul = 1.0
 		local inv = ply:GetNetVar("Inventory")
 		inv["Weapons"]["hg_sling"] = true
 		ply:SetNetVar("Inventory",inv)
@@ -786,6 +795,11 @@ function MODE:Intermission()
 	self.saved.PoliceTime = CurTime() + math.min(self.Types[self.Type].PoliceTime * (#allPlayers / 4),self.Types[self.Type].PoliceTime * 2.2)
 	self.PoliceSpawned = false
 	self.PoliceAllowed = self.Types[self.Type].PoliceAllowed
+	SetGlobalBool("HMCD_ResponseEnabled", self.PoliceAllowed == true)
+	SetGlobalBool("HMCD_ResponseSpawned", false)
+	SetGlobalString("HMCD_ResponseLabel", (self.Type == "soe" and "National Guard") or "Police")
+	SetGlobalFloat("HMCD_ResponseETA", (self.PoliceAllowed and self.saved.PoliceTime) or 0)
+	SetGlobalFloat("HMCD_SWATETA", 0)
 
 	for k, ply in player.Iterator() do
 		if(roleChooseRound)then
@@ -979,6 +993,8 @@ function MODE:RoundThink()
 	
 			if spawned > 0 then
 				self.PoliceSpawned = true
+				SetGlobalBool("HMCD_ResponseSpawned", true)
+				SetGlobalFloat("HMCD_ResponseETA", 0)
 				PrintMessage(HUD_PRINTTALK, "Police have arrived.")
 				EmitSound("snd_jack_hmcd_policesiren.wav", vector_origin, 0, CHAN_AUTO, 1, 125, 0, 100)
 			end
@@ -990,9 +1006,11 @@ function MODE:RoundThink()
 		if not typeData or not typeData.PoliceAllowed then return end
 		
 		self.swatDeployed = true
+		SetGlobalFloat("HMCD_SWATETA", CurTime() + 60)
 		local currentType = modeType 
 		
 		timer.Create("HMCDSpawnSWAT", 60, 1, function()
+			SetGlobalFloat("HMCD_SWATETA", 0)
 			if zb.ROUND_STATE ~= 1 or not MODE or MODE.Type ~= currentType then return end 
 			
 			local timerTypeData = MODE.Types[MODE.Type]
@@ -1017,6 +1035,8 @@ function MODE:RoundThink()
 			local spawned = self:SpawnForce("nationalguard", count)
 			if spawned > 0 then
 				self.PoliceSpawned = true
+				SetGlobalBool("HMCD_ResponseSpawned", true)
+				SetGlobalFloat("HMCD_ResponseETA", 0)
 				PrintMessage(HUD_PRINTTALK, typeData and typeData.PoliceText or "National Guard have arrived.")
 				EmitSound(typeData and typeData.PoliceSound or "snd_jack_hmcd_heli2.mp3", vector_origin, 0, CHAN_AUTO, 1, 125, 0, 100)
 			end
@@ -1342,6 +1362,11 @@ function MODE:EndRound()
 	timer.Remove("HMCDSpawnSWAT")
 	timer.Remove("SpawnAdditionalPolice")
     timer.Remove("SpawnAdditionalNationalGuard")
+	SetGlobalBool("HMCD_ResponseEnabled", false)
+	SetGlobalBool("HMCD_ResponseSpawned", false)
+	SetGlobalString("HMCD_ResponseLabel", "")
+	SetGlobalFloat("HMCD_ResponseETA", 0)
+	SetGlobalFloat("HMCD_SWATETA", 0)
 	
 
 	self.deadPoliceCount = 0

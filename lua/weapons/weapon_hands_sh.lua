@@ -1363,11 +1363,13 @@ function SWEP:PrimaryAttack(forcespecial)
 	if (self.attacked or 0) > CurTime() then return end
 	local side = "fists_left"
 	local rand = math.Round(util.SharedRandom( "fist_Punching", 1, 2 ), 0) == 1
-	local twohands = (owner:GetNetVar("carrymass",0) ~= 0 and owner:GetNetVar("carrymass",0) or owner:GetNetVar("carrymass2",0)) > 15
+	local carryMass = owner:GetNetVar("carrymass", 0)
+	local twohands = ((carryMass ~= 0 and carryMass or owner:GetNetVar("carrymass2", 0)) > 15)
 
-	local inv = owner:GetNetVar("Inventory",{})
+	local inv = owner:GetNetVar("Inventory")
 	if not inv then return end
-	local havekastet = inv["Weapons"] and inv["Weapons"]["hg_brassknuckles"]
+	local weps = inv["Weapons"]
+	local havekastet = weps and weps["hg_brassknuckles"]
 
 	if rand or (CLIENT and ((owner:GetTable().ChatGestureWeight >= 0.1) or twohands)) or havekastet then
 		side = "fists_right"
@@ -1526,8 +1528,9 @@ function SWEP:AttackFront(special_attack, rand)
 	local isZomb = owner.PlayerClassName == "headcrabzombie"
 	local AimVec = owner:GetAimVector()
 	if IsValid(Ent) or (Ent and Ent.IsWorld and Ent:IsWorld()) then
-		local inv = owner:GetNetVar("Inventory",{})
-		local havekastet = inv["Weapons"] and inv["Weapons"]["hg_brassknuckles"]
+		local inv = owner:GetNetVar("Inventory")
+		local weps = inv and inv["Weapons"]
+		local havekastet = weps and weps["hg_brassknuckles"]
 		local SelfForce, Mul = 150, 1 * (havekastet and 1.7 or 1)
 
 		if clawClasses[owner.PlayerClassName] and hgIsDoor(Ent) then

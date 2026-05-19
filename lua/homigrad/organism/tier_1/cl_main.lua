@@ -1092,14 +1092,31 @@ surface.CreateFont("UnconsciousHint", {
 })
 
 local unconsciousHintAlpha = 0
+local giveUpHintAlpha = 0
+local otrubStart = nil
+local lastOtrub = false
 hook.Add("HUDPaint", "hg_unconscious_hint", function()
 	local ply = lply or LocalPlayer()
 	if not IsValid(ply) then return end
 
 	local org = ply.organism
-	local target = (ply:Alive() and org and org.otrub) and 1 or 0
+	local otrub = (ply:Alive() and org and org.otrub) and true or false
+	if otrub and not lastOtrub then
+		otrubStart = CurTime()
+	elseif not otrub then
+		otrubStart = nil
+	end
+	lastOtrub = otrub
+
+	local target = otrub and 1 or 0
 	unconsciousHintAlpha = math.Approach(unconsciousHintAlpha, target, FrameTime() * 3)
 	if unconsciousHintAlpha <= 0 then return end
+
+	local giveUpTarget = (otrubStart and (CurTime() - otrubStart) >= 15) and 1 or 0
+	giveUpHintAlpha = math.Approach(giveUpHintAlpha, giveUpTarget, FrameTime() * 3)
+	if giveUpHintAlpha > 0 then
+		draw.SimpleText("Hold E to give up", "UnconsciousHint", ScrW() / 2, ScrH() - 50, Color(200, 200, 200, 100 * unconsciousHintAlpha * giveUpHintAlpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+	end
 
 	draw.SimpleText("Type 'bind g fake' in console to get up", "UnconsciousHint", ScrW() / 2, ScrH() - 30, Color(200, 200, 200, 100 * unconsciousHintAlpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 end)

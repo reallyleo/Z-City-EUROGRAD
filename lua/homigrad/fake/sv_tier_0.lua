@@ -1,4 +1,4 @@
-﻿local PLAYER = FindMetaTable("Player")
+local PLAYER = FindMetaTable("Player")
 if not HookGetRagdollEntity then HookGetRagdollEntity = PLAYER.GetRagdollEntity end
 function PLAYER:GetRagdollEntity()
 	local ent = self:GetNWEntity("RagdollDeath")
@@ -595,6 +595,8 @@ function hg.Fake(ply, huyragdoll, no_freemove, force)
 	--end)
 
 	timer.Simple(0, function() -- bandaid shitfix for now
+		if not IsValid(ply) then return end
+		if ply:GetCollisionGroup() == COLLISION_GROUP_IN_VEHICLE then return end
 		ply:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 	end)
 
