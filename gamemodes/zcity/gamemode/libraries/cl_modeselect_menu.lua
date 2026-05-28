@@ -659,6 +659,200 @@ if CLIENT then
         updateEnabled()
     end
 
+    local function OpenModeChancesMenu()
+        local frame = vgui.Create("ZFrame")
+        frame:SetSize(700, 560)
+        frame:Center()
+        frame:SetTitle("Mode Chances")
+        frame:MakePopup()
+
+        local edited = {}
+        local rows = {}
+
+        local top = vgui.Create("DPanel", frame)
+        top:Dock(TOP)
+        top:DockMargin(8, 8, 8, 6)
+        top:SetTall(64)
+        StyleElement(top, Color(30, 30, 30, 200))
+
+        local searchBar = vgui.Create("DTextEntry", top)
+        searchBar:Dock(TOP)
+        searchBar:DockMargin(8, 8, 8, 6)
+        searchBar:SetTall(24)
+        searchBar:SetPlaceholderText("Search modes...")
+
+        local totalLabel = vgui.Create("DLabel", top)
+        totalLabel:Dock(TOP)
+        totalLabel:DockMargin(8, 0, 8, 8)
+        totalLabel:SetFont("DermaDefault")
+        totalLabel:SetTextColor(Color(180, 180, 180))
+        totalLabel:SetText("")
+
+        local scroll = vgui.Create("DScrollPanel", frame)
+        scroll:Dock(FILL)
+        scroll:DockMargin(8, 0, 8, 6)
+        StyleElement(scroll, Color(30, 30, 30, 200))
+
+        local bottom = vgui.Create("DPanel", frame)
+        bottom:Dock(BOTTOM)
+        bottom:DockMargin(8, 0, 8, 8)
+        bottom:SetTall(36)
+        bottom.Paint = nil
+
+        local function getModeChance(mode)
+            if edited[mode.key] ~= nil then
+                return edited[mode.key]
+            end
+            return tonumber(mode.chance) or 0
+        end
+
+        local function computeTotal()
+            local total = 0
+            for _, mode in ipairs(zb.availableModes or {}) do
+                if mode.chanceCanChange then
+                    local v = getModeChance(mode)
+                    if v > 0 then
+                        total = total + v
+                    end
+                end
+            end
+            return total
+        end
+
+        local function updatePercents()
+            local total = computeTotal()
+            totalLabel:SetText("Total weight: " .. string.format("%.3f", total))
+            for _, row in ipairs(rows) do
+                if row.UpdatePercent then
+                    row:UpdatePercent(total)
+                end
+            end
+        end
+
+        local function rebuild()
+            scroll:Clear()
+            rows = {}
+
+            local filter = string.Trim(string.lower(searchBar:GetValue() or ""))
+
+            local modes = table.Copy(zb.availableModes or {})
+            table.sort(modes, function(a, b)
+                return string.lower(a.name or a.key or "") < string.lower(b.name or b.key or "")
+            end)
+
+            for _, mode in ipairs(modes) do
+                local displayName = tostring(mode.name or mode.key or "")
+                local keyName = tostring(mode.key or "")
+                local check = string.lower(displayName .. " " .. keyName)
+                if filter ~= "" and not string.find(check, filter, 1, true) then
+                    continue
+                end
+
+                local row = vgui.Create("DPanel", scroll)
+                row:SetTall(34)
+                row:Dock(TOP)
+                row:DockMargin(8, 8, 8, 0)
+                StyleElement(row, Color(40, 40, 40, 200))
+
+                local nameLabel = vgui.Create("DLabel", row)
+                nameLabel:Dock(FILL)
+                nameLabel:DockMargin(10, 0, 0, 0)
+                nameLabel:SetFont("DermaDefaultBold")
+                nameLabel:SetTextColor(Color(255, 255, 255))
+                nameLabel:SetText(displayName .. " (" .. keyName .. ")")
+
+                local percentLabel = vgui.Create("DLabel", row)
+                percentLabel:Dock(RIGHT)
+                percentLabel:SetWide(90)
+                percentLabel:SetFont("DermaDefault")
+                percentLabel:SetTextColor(Color(180, 180, 180))
+                percentLabel:SetContentAlignment(6)
+                percentLabel:SetText("")
+
+                local chanceWang = vgui.Create("DNumberWang", row)
+                chanceWang:Dock(RIGHT)
+                chanceWang:DockMargin(8, 6, 8, 6)
+                chanceWang:SetWide(120)
+                chanceWang:SetMin(0)
+                chanceWang:SetMax(9999)
+                chanceWang:SetDecimals(3)
+                chanceWang:SetValue(getModeChance(mode))
+                chanceWang:SetEnabled(mode.chanceCanChange and true or false)
+                chanceWang:SetAlpha(mode.chanceCanChange and 255 or 80)
+
+                row.UpdatePercent = function(self, total)
+                    local v = getModeChance(mode)
+                    local pct = (total > 0 and (v / total * 100)) or 0
+                    percentLabel:SetText(string.format("%.2f%%", pct))
+                end
+
+                chanceWang.OnValueChanged = function(_, val)
+                    edited[mode.key] = tonumber(val) or 0
+                    updatePercents()
+                end
+
+                rows[#rows + 1] = row
+            end
+
+            updatePercents()
+        end
+
+        searchBar.OnChange = function()
+            rebuild()
+        end
+
+        local applyBtn = vgui.Create("DButton", bottom)
+        applyBtn:Dock(LEFT)
+        applyBtn:SetWide(140)
+        applyBtn:SetText("Apply")
+        StyleElement(applyBtn)
+        applyBtn.DoClick = function()
+            local changed = 0
+            for key, value in pairs(edited) do
+                RunConsoleCommand("zb_setmodechance", key, tostring(value))
+                changed = changed + 1
+            end
+
+            net.Start("ZB_RequestRoundList")
+            net.SendToServer()
+
+            if changed > 0 then
+                chat.AddText(Color(0, 255, 0), "Updated mode chances (" .. tostring(changed) .. ").")
+            else
+                chat.AddText(Color(255, 165, 0), "No changes to apply.")
+            end
+        end
+
+        local saveBtn = vgui.Create("DButton", bottom)
+        saveBtn:Dock(LEFT)
+        saveBtn:DockMargin(8, 0, 0, 0)
+        saveBtn:SetWide(140)
+        saveBtn:SetText("Save")
+        StyleElement(saveBtn)
+        saveBtn.DoClick = function()
+            RunConsoleCommand("zb_savemodeschances")
+            chat.AddText(Color(0, 255, 0), "Saved mode chances.")
+        end
+
+        local rerollBtn = vgui.Create("DButton", bottom)
+        rerollBtn:Dock(LEFT)
+        rerollBtn:DockMargin(8, 0, 0, 0)
+        rerollBtn:SetWide(180)
+        rerollBtn:SetText("Reroll Queue")
+        StyleElement(rerollBtn)
+        rerollBtn.DoClick = function()
+            RunConsoleCommand("zb_rerollchances")
+            net.Start("ZB_RequestRoundList")
+            net.SendToServer()
+            chat.AddText(Color(0, 255, 0), "Rerolled the game mode queue.")
+        end
+
+        net.Start("ZB_RequestRoundList")
+        net.SendToServer()
+
+        rebuild()
+    end
+
     local function OpenAdminMenu()
         if IsValid(isMenuOpen) then return end
 
@@ -698,6 +892,29 @@ if CLIENT then
         queueModeBtn.DoClick = function()
             OpenModeSelection("queue")
         end
+
+        local queueModeGearBtn = vgui.Create("DImageButton", queueModeBtn)
+        queueModeGearBtn:SetSize(16, 16)
+        queueModeGearBtn:SetImage("icon16/cog.png")
+        queueModeGearBtn:SetTooltip("Change mode chances")
+        queueModeGearBtn.DoClick = function()
+            OpenModeChancesMenu()
+        end
+        queueModeGearBtn.Paint = function(self, w, h)
+            if self:IsHovered() then
+                surface.SetDrawColor(255, 255, 255, 30)
+                surface.DrawRect(0, 0, w, h)
+            end
+        end
+        local oldQueueModePerformLayout = queueModeBtn.PerformLayout
+        queueModeBtn.PerformLayout = function(self)
+            if oldQueueModePerformLayout then
+                oldQueueModePerformLayout(self)
+            end
+            local w, h = self:GetSize()
+            queueModeGearBtn:SetPos(w - 26, math.floor((h - 16) / 2))
+        end
+        queueModeBtn:InvalidateLayout(true)
 
         local karmaBtn = vgui.Create("DButton", frame)
         karmaBtn:SetText("Manage Karma")

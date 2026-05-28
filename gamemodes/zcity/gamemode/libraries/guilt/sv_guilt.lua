@@ -201,10 +201,14 @@ hook.Add("HomigradDamage", "GuiltReg", function(ply, dmgInfo, hitgroup, ent, har
     
     Attacker.LastAttacked = CurTime()
 
+    if rnd.name == "as" then
+        if not (Attacker:Team() == 2 and Victim:IsPlayer() and Victim:Team() == 1) then return end
+    end
+
     if Victim.isTraitor and !Attacker.isTraitor and rnd.name == "hmcd" and !zb.IsForce(Attacker) then return end
     if Attacker.isTraitor and !Victim.isTraitor and rnd.name == "hmcd" then return end
     
-    if rnd.name != "hmcd" and (Attacker.Team and Victim.Team and attackerTeam ~= Victim:Team()) then return end
+    if rnd.name != "hmcd" and rnd.name != "as" and (Attacker.Team and Victim.Team and attackerTeam ~= Victim:Team()) then return end
     if zb.ROUND_STATE != 1 and (rnd.name != "cstrike" or !zb.RoundsLeft) then return end
     if Victim.Guilt and Victim.Guilt > 1 and !zb.IsForce(Attacker) then return end
     if Attacker:IsBerserk() then return end

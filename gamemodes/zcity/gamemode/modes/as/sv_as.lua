@@ -10,7 +10,7 @@ MODE.ForBigMaps = false
 MODE.Chance = 0.06
 MODE.LootDivTime = 500
 MODE.AdminOnly = false
-MODE.GuiltDisabled = true
+MODE.GuiltDisabled = false
 
 MODE.ROUND_TIME = 1200
 
@@ -38,7 +38,7 @@ function MODE:GetLootTable()
 end
 
 function MODE.GuiltCheck(Attacker, Victim, add, harm, amt)
-	return 1, true
+	return 1, false
 end
 
 local swatSpawned = false
@@ -60,9 +60,9 @@ local russian_surnames = {
 local swat_weps = {
 	{ "weapon_m4a1", { "holo15", "grip3", "laser4" } },
 	{ "weapon_hk416", { "holo15", "grip3", "laser4" } },
-	{ "weapon_p90", {} },
+	{ "weapon_p90", { "holo14" } },
 	{ "weapon_mp7", { "holo14" } },
-	{ "weapon_m4a1", { "optic2", "grip3", "supressor7" } }
+	{ "weapon_m4a1", { "holo2", "grip3", "supressor7" } }
 }
 
 local swat_otheritems = {
@@ -89,12 +89,10 @@ function MODE:AssignTeams()
 		end
 	end
 
-	local traitors_needed = 1
-	local homicide_traitoramount = GetConVar("homicide_traitoramount")
-	if homicide_traitoramount then
-		traitors_needed = math.min(player_count - 1, homicide_traitoramount:GetInt())
+	local traitors_needed = 0
+	if player_count > 1 then
+		traitors_needed = math.min(4, math.min(player_count - 1, math.max(1, math.ceil(player_count / 5))))
 	end
-	traitors_needed = math.max(1, traitors_needed)
 
 	for _, ply in ipairs(players) do
 		if ply:Team() == TEAM_SPECTATOR then continue end
@@ -415,7 +413,10 @@ function MODE:RoundThink()
 		local spawnVectors = self.ShooterSpawns or zb.TranslatePointsToVectors(zb.GetMapPoints("AS_SHOOTER_SPAWN"))
 		local startpos = (spawnVectors and spawnVectors[1]) or zb:GetRandomSpawn()
 
-		for i = 1, math.min(4, #deadPlayers) do
+		local desiredSwatCount = (math.random(1, 4) == 1 and 6) or 4
+		local swatCount = math.min(desiredSwatCount, #deadPlayers)
+
+		for i = 1, swatCount do
 			local ply = deadPlayers[i]
 
 			ply:Spawn()

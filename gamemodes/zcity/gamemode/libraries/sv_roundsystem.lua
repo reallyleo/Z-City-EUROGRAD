@@ -465,21 +465,35 @@ function zb.GetModesInfo()
 	for name, mode in pairs(zb.modes) do
 		if mode.Types then
 			for name2, mode2 in pairs(mode.Types) do
+				local chance = zb.GetChance(name2)
+				local canChangeChance = zb.ModesChances and zb.ModesChances[name2] ~= nil or false
+				local isDynamicChance = mode2 and mode2.ChanceFunction ~= nil or false
+
 				table.insert(modesInfo, {
 					key = name2,
 					name = (mode.PrintName or mode.name or name).."/"..name2,
 					description = mode.Description or "",
 					forBigMaps = mode.ForBigMaps or false,
-					canlaunch = (mode:CanLaunch() and 1 or 0)
+					canlaunch = (mode:CanLaunch() and 1 or 0),
+					chance = chance,
+					chanceCanChange = canChangeChance,
+					chanceIsDynamic = isDynamicChance
 				})
 			end
 		else
+			local chance = zb.GetChance(name)
+			local canChangeChance = zb.ModesChances and zb.ModesChances[name] ~= nil or false
+			local isDynamicChance = mode and mode.ChanceFunction ~= nil or false
+
 			table.insert(modesInfo, {
 				key = name,
 				name = mode.PrintName or mode.name or name,
 				description = mode.Description or "",
 				forBigMaps = mode.ForBigMaps or false,
-				canlaunch = (mode:CanLaunch() and 1 or 0)
+				canlaunch = (mode:CanLaunch() and 1 or 0),
+				chance = chance,
+				chanceCanChange = canChangeChance,
+				chanceIsDynamic = isDynamicChance
 			})
 		end
 	end

@@ -721,14 +721,9 @@ function MODE:Intermission()
 	local roleChooseRound = MODE.ShouldStartRoleRound()
 	local allPlayers = player.GetAll()
 
-	local traitors_needed = math.min(player_count - 1, homicide_traitoramount:GetInt())
-	
-	if(roleChooseRound)then
-		traitors_needed = math.ceil(player_count / 9)
-		
-		if(player_count > 8 and math.random(1, 8) == 1)then
-			traitors_needed = traitors_needed + 1
-		end
+	local traitors_needed = 0
+	if player_count > 1 then
+		traitors_needed = math.min(4, math.min(player_count - 1, math.max(1, math.ceil(player_count / 5))))
 	end
 
 	MODE.TraitorExpectedAmt = traitors_needed
@@ -1017,7 +1012,8 @@ function MODE:RoundThink()
 			if not timerTypeData or not timerTypeData.PoliceAllowed then return end
 			
 			local available = MODE:GetActivePlayers()
-			local count = math.min(#available, 5)
+			local desiredSwatCount = (math.random(1, 4) == 1 and 6) or 4
+			local count = math.min(#available, desiredSwatCount)
 	
 			if count > 0 then
 				PrintMessage(HUD_PRINTTALK, "SWAT team incoming!")
@@ -1600,33 +1596,46 @@ end)
 util.AddNetworkString("HMCD_UpdateTraitorAssistants")
 
 function MODE.SpawnPlayers(spawn_with_subroles)
-    local gunner_found = false
 	local all_players = player.GetAll()
+	local active_player_count = 0
+	local eligible_gunner_count = 0
+	for _, ply in ipairs(all_players) do
+		if ply:Team() ~= TEAM_SPECTATOR then
+			active_player_count = active_player_count + 1
+			if not ply.isTraitor then
+				eligible_gunner_count = eligible_gunner_count + 1
+			end
+		end
+	end
 
-    for i, ply in RandomPairs(all_players) do
-        if ply.isTraitor or ply.isGunner or ply:Team() == TEAM_SPECTATOR then continue end
-        if math.random(100) > (ply.Karma or 100) then continue end
+	local gunners_to_pick = 1
+	if active_player_count >= 8 and math.random(1, 4) == 1 then
+		gunners_to_pick = 2
+	end
+	gunners_to_pick = math.min(gunners_to_pick, eligible_gunner_count)
 
-        ply.isGunner = true
-        gunner_found = true
-        break
-    end
+	for _ = 1, gunners_to_pick do
+		local gunner_found = false
+		for _, ply in RandomPairs(all_players) do
+			if ply.isTraitor or ply.isGunner or ply:Team() == TEAM_SPECTATOR then continue end
+			if math.random(100) > (ply.Karma or 100) then continue end
 
-    if(not gunner_found)then
-        for i,ply in RandomPairs(all_players) do
-            if ply.isTraitor or ply.isGunner or ply:Team() == TEAM_SPECTATOR then continue end
+			ply.isGunner = true
+			gunner_found = true
+			break
+		end
 
-            ply.isGunner = true
-            break
-        end
-    end
+		if not gunner_found then
+			for _, ply in RandomPairs(all_players) do
+				if ply.isTraitor or ply.isGunner or ply:Team() == TEAM_SPECTATOR then continue end
 
-    local player_count = 0
-    for i, ply in player.Iterator() do
-        if(ply:Team() != TEAM_SPECTATOR)then
-            player_count = player_count + 1
-        end
-    end
+				ply.isGunner = true
+				break
+			end
+		end
+	end
+
+	local player_count = active_player_count
 
     --= Профессии
     local professions = {}

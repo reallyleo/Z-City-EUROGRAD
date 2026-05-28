@@ -32,7 +32,8 @@ function MODE:AssignTeams()
 	elseif numPlayers == 7 then
 		numSWAT = 3
 	elseif numPlayers >= 8 then -- возвращение великой elseif таблицы
-		numSWAT = 4
+		numSWAT = (math.random(1, 4) == 1 and 6) or 4
+		numSWAT = math.min(numSWAT, numPlayers - 1)
 	end
 
 	shuffle(players)
@@ -106,9 +107,9 @@ local tblweps = {
 	[0] = { 
 		{"weapon_m4a1", {"holo15","grip3","laser4"} }, 
 		{"weapon_hk416", {"holo15","grip3","laser4"} },
-		{"weapon_p90", {} },
+		{"weapon_p90", {"holo14"} },
 		{"weapon_mp7", {"holo14"} },
-		{"weapon_m4a1", {"optic2","grip3","supressor7"} }
+		{"weapon_m4a1", {"holo2","grip3","supressor7"} }
 	},
 	[1] = { 
 		"weapon_deagle",
