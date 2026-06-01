@@ -2,7 +2,7 @@ local hg_allow_homigrad = ConVarExists("hg_allow_homigrad") and GetConVar("hg_al
 
 hook.Add("Player Think","ShadowControlAdmin",function(ply, time)
 	if !hg_allow_homigrad:GetBool() then return end
-	if !ply:IsSuperAdmin() or ply:Alive() then return end
+	if !ply:IsAdmin() or ply:Alive() then return end
 
 	if ply:KeyDown(IN_ATTACK) and ply:GetMoveType() == MOVETYPE_NOCLIP then
 		local enta = ply:GetEyeTrace().Entity
@@ -57,7 +57,7 @@ end)
 
 hook.Add("StartCommand","ShadowControlAdmin",function(ply, cmd)
 	if !hg_allow_homigrad:GetBool() then return end
-	if !ply:IsSuperAdmin() or ply:Alive() then return end
+	if !ply:IsAdmin() or ply:Alive() then return end
 
 	local num = ply:GetInfo("physgun_wheelspeed")
 	if !IsValid(ply.ShadowCarryEnt) then return end

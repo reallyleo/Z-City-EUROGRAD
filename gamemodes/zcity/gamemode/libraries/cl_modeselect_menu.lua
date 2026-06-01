@@ -302,7 +302,7 @@ if CLIENT then
         }
         
         for i, mode in SortedPairsByMemberValue(zb.availableModes,"canlaunch",true) do
-            if !LocalPlayer():IsSuperAdmin() and !allowedModes[mode.key] then continue end
+            if !LocalPlayer():IsAdmin() and !allowedModes[mode.key] then continue end
             
             local modeBtn = CreateModeItem(dscroll, mode)
             table.insert(modeItems, modeBtn)
