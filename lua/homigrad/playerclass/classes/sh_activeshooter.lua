@@ -21,13 +21,29 @@ local function ApplyShooterAccessories(ply)
     ply.CurAppearance = Appearance
 end
 
-function CLASS.On(self)
+function CLASS.On(self, data)
     if CLIENT then return end
+    data = data or {}
 
     self:SetPlayerColor(Color(200, 40, 40):ToVector())
 
     if CurrentRound and CurrentRound().name == "as" then
-        ApplyShooterAccessories(self)
+        ApplyAppearance(self, nil, nil, nil, true)
+
+        local mdl = data.shooterModel
+        if isstring(mdl) and mdl ~= "" and util.IsValidModel(mdl) then
+            self:SetModel(mdl)
+            self:SetSubMaterial()
+            timer.Simple(0, function()
+                if not IsValid(self) then return end
+                self:SetBodyGroups("00000000000")
+            end)
+        end
+
+        local Appearance = self.CurAppearance or hg.Appearance.GetRandomAppearance()
+        Appearance.AAttachments = ""
+        self:SetNetVar("Accessories", "")
+        self.CurAppearance = Appearance
         return
     end
 

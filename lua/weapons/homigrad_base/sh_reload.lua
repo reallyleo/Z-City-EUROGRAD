@@ -1,4 +1,4 @@
-﻿AddCSLuaFile()
+AddCSLuaFile()
 --
 function SWEP:Initialize_Reload()
 	self.LastReload = 0
@@ -54,6 +54,17 @@ function SWEP:InsertAmmo(need)
 	need = math.min(need, self:GetMaxClip1())
 	self:SetClip1(self:Clip1() + need)
 	owner:SetAmmo(primaryAmmoCount - need, primaryAmmo)
+
+	if self.UseTubeAmmo and need > 0 then
+		self.TubeAmmo = self.TubeAmmo or {}
+		local ammoName = self.RealAmmoType or (self.Primary and self.Primary.Ammo)
+		for i = 1, need do
+			table.insert(self.TubeAmmo, 1, ammoName)
+		end
+		if SERVER then
+			self:SetNWString("hg_tube_chamber", self.TubeAmmo[1] or "")
+		end
+	end
 
 	if SERVER then
 		net.Start("hg_insertAmmo")

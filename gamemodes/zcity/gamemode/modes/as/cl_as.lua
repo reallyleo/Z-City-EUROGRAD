@@ -4,13 +4,13 @@ local MODE = MODE
 
 local teams = {
 	[0] = {
-		objective = "Find and Eliminate as many civilians as possible.",
-		name = "the Active Shooter",
+		objective = "No mercy. Track them down.",
+		name = "the Active Threat",
 		color1 = Color(200, 40, 40),
 		color2 = Color(200, 40, 40)
 	},
 	[1] = {
-		objective = "Survive and avoid the shooter. Help others stay alive.",
+		objective = "Run. Hide. Make it out alive.",
 		name = "a Civilian",
 		color1 = Color(40, 160, 40),
 		color2 = Color(40, 160, 40)
@@ -29,11 +29,11 @@ surface.CreateFont("UnconsciousHint", {
 })
 
 net.Receive("as_start", function()
-	surface.PlaySound("activeshooter/activestart.mp3")
+	surface.PlaySound("as/zbattle/activestart.ogg")
 	zb.RemoveFade()
 
 	timer.Simple(3, function()
-		sound.PlayFile("sound/activeshooter/activecoming.mp3", "mono noblock", function(station)
+		sound.PlayFile("sound/as/zbattle/activecoming.ogg", "mono noblock", function(station)
 			if IsValid(station) then
 				station:Play()
 				song = station
@@ -139,7 +139,7 @@ CreateEndMenu = function(winner)
 
 		local title
 		if winner == 0 then
-			title = "Active Shooter Wins"
+			title = "Active Threat Wins"
 		elseif winner == 1 then
 			title = "Civilians Win"
 		else
@@ -294,7 +294,7 @@ function MODE:HUDPaint()
 		local teamId = ply:Team()
 		local teamData = teams[teamId]
 		if teamData then
-			draw.SimpleText("ZBattle | Active Shooter", "ZB_HomicideMediumLarge", sw * 0.5, sh * 0.1, Color(0, 162, 255, 255 * fade), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			draw.SimpleText("ZBattle | Active Threat Response", "ZB_HomicideMediumLarge", sw * 0.5, sh * 0.1, Color(0, 162, 255, 255 * fade), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
 			local roleColor = teamData.color1
 			roleColor.a = 255 * fade

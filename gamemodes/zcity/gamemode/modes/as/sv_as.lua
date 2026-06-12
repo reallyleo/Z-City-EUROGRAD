@@ -1,7 +1,7 @@
 local MODE = MODE
 
 MODE.name = "as"
-MODE.PrintName = "Active Shooter"
+MODE.PrintName = "Active Threat Response"
 
 MODE.LootSpawn = true
 MODE.LootOnTime = true
@@ -42,20 +42,95 @@ function MODE.GuiltCheck(Attacker, Victim, add, harm, amt)
 end
 
 local swatSpawned = false
-local shooter_masks = {
-	"arctic_balaclava",
-	"bandana"
+
+local shooterPlayerModels = {
+	"models/player/masked_shooter01.mdl",
+	"models/player/masked_shooter02.mdl",
+	"models/player/masked_shooter03.mdl",
+	"models/player/masked_shooter04.mdl",
 }
 
-local russian_names = {
-	"Artyom", "Boris", "Dmitry", "Evgeny", "Fedor", "Grigory", "Igor", "Ivan", "Kirill", "Leonid", "Mikhail", "Nikolai", "Oleg", "Pavel", "Ruslan", "Sergei", "Timofey", "Vasily", "Yury", "Zakhar",
-	"Viktor", "Andrey", "Stanislav", "Alexey", "Konstantin", "Vladimir", "Yaroslav", "Svyatoslav", "Vyacheslav", "Gennady"
+local shooterLoadouts = {
+	{
+		primary = "weapon_ar15",
+		primaryAttachments = { "holo15", "grip3", "laser4" },
+		primaryAmmoMul = 2,
+		secondary = "weapon_m9beretta",
+		secondaryAmmoMul = 2,
+		items = { "weapon_bandage_sh", "weapon_melee" }
+	},
+	{
+		primary = "weapon_mp7",
+		primaryAttachments = { "holo1" },
+		primaryAmmoMul = 6,
+		items = { "weapon_bandage_sh", "weapon_melee" }
+	},
+	{
+		primary = "weapon_m16a2",
+		primaryAmmoMul = 2,
+		secondary = "weapon_pl15",
+		secondaryAmmoMul = 2,
+		items = { "weapon_bandage_sh", "weapon_breachcharge", "weapon_melee" }
+	},
+	{
+		primary = "weapon_xm1014",
+		primaryAmmoMul = 4,
+		secondary = "weapon_m45",
+		secondaryAmmoMul = 3,
+		items = { "weapon_bandage_sh", "weapon_medkit_sh", "weapon_melee" }
+	},
+	{
+		secondary = "weapon_glock26",
+		secondaryAttachments = { "ent_att_holo16", "ent_att_laser2" },
+		secondaryAmmoMul = 5,
+		items = { "weapon_hg_pipebomb_tpik", "weapon_bombvest", "weapon_bandage_sh", "weapon_melee" }
+	},
 }
 
-local russian_surnames = {
-	"Ivanov", "Smirnov", "Kuznetsov", "Popov", "Vasiliev", "Petrov", "Sokolov", "Mikhailov", "Novikov", "Fedorov", "Morozov", "Volkov", "Alexeev", "Lebedev", "Semenov", "Egorov", "Pavlov", "Kozlov", "Stepanov", "Nikolaev",
-	"Orlov", "Andreev", "Makarov", "Nikitin", "Zakharov", "Zaitsev", "Soloviev", "Borisov", "Yakovlev", "Vorobiev"
-}
+local function AS_GiveShooterLoadout(ply, loadout)
+	if not IsValid(ply) then return end
+	loadout = loadout or table.Random(shooterLoadouts)
+	if not loadout then return end
+
+	local function giveWeapon(class, ammoMul, attachments)
+		if not class or class == "" then return end
+		local wep = ply:Give(class)
+		if not IsValid(wep) then return end
+
+		if attachments and hg and hg.AddAttachmentForce then
+			for _, att in ipairs(attachments) do
+				if att and att ~= "" then
+					hg.AddAttachmentForce(ply, wep, att)
+				end
+			end
+		end
+
+		if ammoMul and wep.GetMaxClip1 and wep.GetPrimaryAmmoType then
+			local maxClip = wep:GetMaxClip1()
+			local ammoType = wep:GetPrimaryAmmoType()
+			if maxClip and maxClip > 0 and ammoType and ammoType >= 0 then
+				ply:GiveAmmo(maxClip * ammoMul, ammoType, true)
+			end
+		end
+
+		return wep
+	end
+
+	local primary = giveWeapon(loadout.primary, loadout.primaryAmmoMul, loadout.primaryAttachments)
+	giveWeapon(loadout.secondary, loadout.secondaryAmmoMul, loadout.secondaryAttachments)
+
+	if loadout.items then
+		for _, item in ipairs(loadout.items) do
+			if item and item ~= "" then
+				ply:Give(item)
+			end
+		end
+	end
+
+	if IsValid(primary) then
+		ply:SelectWeapon(primary:GetClass())
+	end
+end
 
 local swat_weps = {
 	{ "weapon_m4a1", { "holo15", "grip3", "laser4" } },
@@ -110,7 +185,34 @@ end
 util.AddNetworkString("as_start")
 util.AddNetworkString("as_roundend")
 util.AddNetworkString("as_swat_spawn")
-util.AddNetworkString("AS_SetShooterSubrole")
+
+local function AS_GetShooterSpawns()
+	local spawns = {}
+
+	for _, ent in ipairs(ents.FindByClass("as_shooter_spawn")) do
+		spawns[#spawns + 1] = ent:GetPos()
+	end
+
+	if #spawns == 0 and zb and zb.GetMapPoints then
+		local points = zb.GetMapPoints("AS_SHOOTER_SPAWN") or {}
+		for _, p in ipairs(points) do
+			if p and p.pos then
+				spawns[#spawns + 1] = p.pos
+			end
+		end
+	end
+
+	return spawns
+end
+
+local function AS_SetupCivilian(ply)
+	if not IsValid(ply) then return end
+	ply:SetTeam(1)
+	if hg and hg.CreateInv then
+		hg.CreateInv(ply)
+	end
+	ply:GetRandomSpawn()
+end
 
 local function AS_ClearShooterWaiting(ply)
 	if not IsValid(ply) then return end
@@ -148,12 +250,6 @@ local function AS_SetShooterWaiting(ply)
 	ply:SpectateEntity(waitCam)
 end
 
-net.Receive("AS_SetShooterSubrole", function(_, ply)
-	local pref = net.ReadString()
-	if pref ~= "overwatch" and pref ~= "old_reliable" and pref ~= "featherweight" and pref ~= "boom_or_bust" then return end
-	ply.AS_ShooterSubrole = pref
-end)
-
 function MODE:CanLaunch()
 	return true
 end
@@ -170,6 +266,9 @@ function MODE:Intermission()
 		end
 
 		ply:SetupTeam(ply:Team())
+		if ply:Team() == 1 then
+			ply:GetRandomSpawn()
+		end
 	end
 
 	net.Start("as_start")
@@ -236,21 +335,42 @@ function MODE:RoundStart()
 end
 
 function MODE:GetTeamSpawn()
-	self.ShooterSpawns = self.ShooterSpawns or zb.TranslatePointsToVectors(zb.GetMapPoints("AS_SHOOTER_SPAWN"))
-
-	local defaultSpawn = zb:GetRandomSpawn()
-
-	return self.ShooterSpawns, {defaultSpawn}
+	self.ShooterSpawns = AS_GetShooterSpawns()
+	return self.ShooterSpawns, nil
 end
 
 function MODE:GiveEquipment()
 	timer.Simple(0.5, function()
 		self.ShooterSpawned = false
+		local shooters = {}
+		for _, ply in player.Iterator() do
+			if ply:Team() == TEAM_SPECTATOR then continue end
+			if ply:Team() ~= 0 then continue end
+			table.insert(shooters, ply)
+		end
+		table.sort(shooters, function(a, b)
+			return a:EntIndex() < b:EntIndex()
+		end)
+
+		local loadoutPool = table.Copy(shooterLoadouts)
+		table.Shuffle(loadoutPool)
+
+		local shooterAssignments = {}
+		for i, ply in ipairs(shooters) do
+			local idx = ((i - 1) % #shooterPlayerModels) + 1
+			shooterAssignments[ply] = {
+				model = shooterPlayerModels[idx],
+				loadout = loadoutPool[i] or table.Random(shooterLoadouts)
+			}
+		end
 
 		for _, ply in player.Iterator() do
 			if ply:Team() == TEAM_SPECTATOR then continue end
 
 			if ply:Team() == 0 then
+				local assignment = shooterAssignments[ply]
+				local shooterModel = assignment and assignment.model
+				local shooterLoadout = assignment and assignment.loadout
 				local entIndex = ply:EntIndex()
 
 				AS_SetShooterWaiting(ply)
@@ -262,25 +382,12 @@ function MODE:GiveEquipment()
 					ply:Spawn()
 					ply:SetSuppressPickupNotices(true)
 					ply.noSound = true
+					ply:StripWeapons()
+					ply:StripAmmo()
 
 					ply:SetupTeam(0)
-					ply:SetPlayerClass("activeshooter")
-					zb.GiveRole(ply, "Active Shooter", Color(200, 40, 40))
-
-					local russianName = table.Random(russian_names) .. " " .. table.Random(russian_surnames)
-					ply:SetNWString("RussianName", russianName)
-					ply:SetNetVar("RussianName", russianName)
-					ply:SetNWString("PlayerName", russianName)
-
-					timer.Simple(0, function()
-						if not IsValid(ply) then return end
-						ApplyAppearance(ply, nil, nil, nil, true)
-						local Appearance = ply.CurAppearance or hg.Appearance.GetRandomAppearance()
-						Appearance.AAttachments = { shooter_masks[math.random(#shooter_masks)], "terrorist_band" }
-						ply:SetNetVar("Accessories", Appearance.AAttachments or "none")
-						ply.CurAppearance = Appearance
-						ply:SetNWString("PlayerName", russianName)
-					end)
+					ply:SetPlayerClass("activeshooter", { shooterModel = shooterModel })
+					zb.GiveRole(ply, "Active Threat", Color(200, 40, 40))
 
 					local inv = ply:GetNetVar("Inventory", {})
 					inv["Weapons"] = inv["Weapons"] or {}
@@ -290,86 +397,13 @@ function MODE:GiveEquipment()
 
 					local hands = ply:Give("weapon_hands_sh")
 
-					local subrole = table.Random({ "overwatch", "old_reliable", "featherweight", "boom_or_bust" })
-					ply.AS_ShooterSubrole = subrole
-
 					local radio = ply:Give("weapon_walkie_talkie")
 					if IsValid(radio) then
 						radio:AdjustFrequency(100.2 - radio.Frequency)
 						radio.isOn = true
 						radio:SetIsOn(true)
 					end
-
-					if subrole == "overwatch" then
-						ply.organism.stamina.range = 150
-						hg.AddArmor(ply, "ent_armor_vest16")
-						hg.AddArmor(ply, "ent_armor_helmet3")
-
-						local primary = ply:Give("weapon_rpk")
-						if IsValid(primary) and primary.GetMaxClip1 then
-							ply:GiveAmmo(primary:GetMaxClip1() * 2, primary:GetPrimaryAmmoType(), true)
-							ply:SelectWeapon(primary:GetClass())
-						end
-
-						local pistol = ply:Give("weapon_makarov")
-						if IsValid(pistol) and pistol.GetMaxClip1 then
-							ply:GiveAmmo(pistol:GetMaxClip1() * 2, pistol:GetPrimaryAmmoType(), true)
-						end
-
-						ply:Give("weapon_bandage_sh")
-						ply:Give("weapon_melee")
-					elseif subrole == "featherweight" then
-						ply.organism.stamina.range = 280
-
-						local pistol = ply:Give("weapon_glock18c")
-						if IsValid(pistol) and pistol.GetMaxClip1 then
-							hg.AddAttachmentForce(ply, pistol, { "laser2", "supressor4" })
-							ply:GiveAmmo(pistol:GetMaxClip1() * 6, pistol:GetPrimaryAmmoType(), true)
-						end
-
-						ply:Give("weapon_bandage_sh")
-						ply:Give("weapon_melee")
-					elseif subrole == "boom_or_bust" then
-						ply.organism.stamina.range = 175
-						hg.AddArmor(ply, "ent_armor_vest18")
-
-						local pistol = ply:Give("weapon_glock18c")
-						if IsValid(pistol) and pistol.GetMaxClip1 then
-							ply:GiveAmmo(pistol:GetMaxClip1() * 3, pistol:GetPrimaryAmmoType(), true)
-							ply:SelectWeapon(pistol:GetClass())
-						else
-							ply:SelectWeapon("weapon_hands_sh")
-						end
-
-						ply:Give("weapon_claymore")
-						ply:Give("weapon_hg_slam")
-						ply:Give("weapon_hg_pipebomb_tpik")
-						ply:Give("weapon_bandage_sh")
-						ply:Give("weapon_breachcharge")
-						ply:Give("weapon_bayonet")
-					else
-						ply.organism.stamina.range = 220
-						hg.AddArmor(ply, "ent_armor_vest4")
-						hg.AddArmor(ply, "ent_armor_helmet12")
-
-						local pistol = ply:Give("weapon_m1911")
-						if IsValid(pistol) and pistol.GetMaxClip1 then
-							ply:GiveAmmo(pistol:GetMaxClip1() * 3, pistol:GetPrimaryAmmoType(), true)
-						end
-
-						local shotgun = ply:Give("weapon_saiga12")
-						if IsValid(shotgun) and shotgun.GetMaxClip1 then
-							ply:GiveAmmo(shotgun:GetMaxClip1() * 4, shotgun:GetPrimaryAmmoType(), true)
-							ply:SelectWeapon(shotgun:GetClass())
-						else
-							ply:SelectWeapon("weapon_hands_sh")
-						end
-
-						ply:Give("weapon_hg_pipebomb_tpik")
-						ply:Give("weapon_bandage_sh")
-						ply:Give("weapon_medkit_sh")
-						ply:Give("weapon_melee")
-					end
+					AS_GiveShooterLoadout(ply, shooterLoadout)
 
 					ply:SetSuppressPickupNotices(false)
 					ply.noSound = false
@@ -380,7 +414,7 @@ function MODE:GiveEquipment()
 				ply:SetSuppressPickupNotices(true)
 				ply.noSound = true
 
-				ply:SetupTeam(1)
+				AS_SetupCivilian(ply)
 				zb.GiveRole(ply, "Civilian", Color(40, 160, 40))
 
 				local hands = ply:Give("weapon_hands_sh")
@@ -409,11 +443,26 @@ function MODE:RoundThink()
 				table.insert(deadPlayers, ply)
 			end
 		end
+		
+		local shooterSpawns = AS_GetShooterSpawns()
+		local shooterBase = zb.tspawn or (shooterSpawns and shooterSpawns[1]) or zb:GetRandomSpawn()
 
-		local spawnVectors = self.ShooterSpawns or zb.TranslatePointsToVectors(zb.GetMapPoints("AS_SHOOTER_SPAWN"))
-		local startpos = (spawnVectors and spawnVectors[1]) or zb:GetRandomSpawn()
+		local startpos
+		if shooterSpawns and #shooterSpawns > 0 then
+			startpos = table.Random(shooterSpawns)
+			if shooterBase and shooterBase:DistToSqr(startpos) < (512 * 512) then
+				for _, candidate in RandomPairs(shooterSpawns) do
+					if shooterBase:DistToSqr(candidate) >= (512 * 512) then
+						startpos = candidate
+						break
+					end
+				end
+			end
+		else
+			startpos = zb:GetRandomSpawn()
+		end
 
-		local desiredSwatCount = (math.random(1, 4) == 1 and 6) or 4
+		local desiredSwatCount = (math.random(1, 2) == 1 and 6) or 4
 		local swatCount = math.min(desiredSwatCount, #deadPlayers)
 
 		for i = 1, swatCount do
@@ -421,11 +470,12 @@ function MODE:RoundThink()
 
 			ply:Spawn()
 			ply:SetTeam(2)
-
-			if not startpos then
-				startpos = ply:GetPos()
-			else
-				hg.tpPlayer(startpos, ply, i, 0)
+			if startpos then
+				if i == 1 then
+					ply:SetPos(startpos)
+				else
+					hg.tpPlayer(startpos, ply, i, 0)
+				end
 			end
 
 			ply:SetPlayerClass("swat")

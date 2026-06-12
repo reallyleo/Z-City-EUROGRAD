@@ -184,6 +184,40 @@ if CLIENT then
 			return
 		end
 		
+		local function getAmmoTypeMenu()
+			if not IsValid(wep) or not wep.AmmoTypes or wep.reload then return end
+			if not lply.GetAmmoCount then return end
+			local cur = wep.RealAmmoType or (wep.Primary and wep.Primary.Ammo)
+
+			local options = {}
+			local optionToTypeIndex = {}
+
+			for typeIndex, ammotype in ipairs(wep.AmmoTypes) do
+				local name = istable(ammotype) and ammotype[1]
+				if isstring(name) then
+					local has = lply:GetAmmoCount(name) > 0
+					if has or (cur and name == cur) then
+						options[#options + 1] = name
+						optionToTypeIndex[#options] = typeIndex
+					end
+				end
+			end
+
+			if #options < 2 then return end
+
+			return {
+				function(mouseClick, chosen)
+					local typeIndex = optionToTypeIndex[chosen]
+					if typeIndex then
+						RunConsoleCommand("hg_change_ammotype", typeIndex)
+					end
+				end,
+				"Change Ammo Type",
+				true,
+				options
+			}
+		end
+
         local tbl = {
             [1] = {
                 [1] = function(mouseClick)
@@ -263,21 +297,17 @@ if CLIENT then
                 end,
                 [2] = "Unload" 
             }
+			if wep.AllwaysChangeAmmo then
+				local menu = getAmmoTypeMenu()
+				if menu then
+					tbl[#tbl + 1] = menu
+				end
+			end
         elseif (wep:Clip1() == 0 or wep.AllwaysChangeAmmo) and wep.AmmoTypes and not wep.reload then
-            local ammotypes = {}
-            
-            for k, ammotype in ipairs(wep.AmmoTypes) do
-                ammotypes[k] = ammotype[1]
-            end 
-
-            tbl[#tbl + 1] = {
-                function(mouseClick, chosen)
-                    RunConsoleCommand("hg_change_ammotype", chosen) 
-                end,
-                "Change Ammo Type",
-                true,
-                ammotypes
-            }
+			local menu = getAmmoTypeMenu()
+			if menu then
+				tbl[#tbl + 1] = menu
+			end
         end
 
         local laser = wep.attachments and wep.attachments.underbarrel

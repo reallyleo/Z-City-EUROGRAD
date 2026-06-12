@@ -1012,7 +1012,7 @@ function MODE:RoundThink()
 			if not timerTypeData or not timerTypeData.PoliceAllowed then return end
 			
 			local available = MODE:GetActivePlayers()
-			local desiredSwatCount = (math.random(1, 4) == 1 and 6) or 4
+			local desiredSwatCount = (math.random(1, 2) == 1 and 6) or 4
 			local count = math.min(#available, desiredSwatCount)
 	
 			if count > 0 then

@@ -174,7 +174,7 @@ function MODE:RoundThink()
 
 		local startpos = self.TPoints and #self.TPoints > 0 and self.TPoints[1].pos or zb:GetRandomSpawn()
 
-		local desiredSwatCount = (math.random(1, 4) == 1 and 6) or 4
+		local desiredSwatCount = (math.random(1, 2) == 1 and 6) or 4
 		local swatCount = math.min(desiredSwatCount, #deadPlayers)
 
 		for i = 1, swatCount do

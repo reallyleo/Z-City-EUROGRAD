@@ -336,14 +336,20 @@ local function reloadFunc(self)
 
 	self:SetNetVar("shootgunReload",CurTime() + 1.1)
 
-	if self.MagIndex then
-		self:GetWM():ManipulateBoneScale(self.MagIndex, vector_full)
+	do
+		local wm = self.GetWM and self:GetWM()
+		if IsValid(wm) and self.MagIndex then
+			wm:ManipulateBoneScale(self.MagIndex, vector_full)
+		end
 	end
 	
 	self:PlayAnim(self.AnimList["insert"] or "sgreload_insert", 1, false, function() 
 		self:InsertAmmo(1)
-		if self.MagIndex then
-			self:GetWM():ManipulateBoneScale(self.MagIndex, vector_origin)
+		do
+			local wm = self.GetWM and self:GetWM()
+			if IsValid(wm) and self.MagIndex then
+				wm:ManipulateBoneScale(self.MagIndex, vector_origin)
+			end
 		end
 		
 		local key = hg.KeyDown(self:GetOwner(), IN_RELOAD)
@@ -356,9 +362,21 @@ local function reloadFunc(self)
 
 		if self:GetChamber() == "Nothing" then
 			cock(self,1)
-			self:PlayAnim(self.AnimList["finish_empty"] or "sgreload_finish_empty", 1,false,function(self) self:SetNetVar("shootgunReload",0) self:GetWM():ManipulateBoneScale(self.MagIndex, vector_origin) end,false,true) 
+			self:PlayAnim(self.AnimList["finish_empty"] or "sgreload_finish_empty", 1, false, function(self)
+				self:SetNetVar("shootgunReload", 0)
+				local wm = self.GetWM and self:GetWM()
+				if IsValid(wm) and self.MagIndex then
+					wm:ManipulateBoneScale(self.MagIndex, vector_origin)
+				end
+			end, false, true)
 		else
-			self:PlayAnim(self.AnimList["finish"] or "sgreload_finish", 1,false,function(self) self:SetNetVar("shootgunReload",0) self:GetWM():ManipulateBoneScale(self.MagIndex, vector_origin) end,false,true) 
+			self:PlayAnim(self.AnimList["finish"] or "sgreload_finish", 1, false, function(self)
+				self:SetNetVar("shootgunReload", 0)
+				local wm = self.GetWM and self:GetWM()
+				if IsValid(wm) and self.MagIndex then
+					wm:ManipulateBoneScale(self.MagIndex, vector_origin)
+				end
+			end, false, true)
 		end
 	end, false, true)
 end

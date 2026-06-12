@@ -115,6 +115,16 @@ function SWEP:Initialize()
 	self:Initialize_Reload()
 	self:SetClip1(self.Primary.DefaultClip)
 	self:Draw()
+	if self.UseTubeAmmo then
+		self.TubeAmmo = {}
+		local ammo = self.Primary and self.Primary.Ammo
+		for i = 1, self:Clip1() do
+			self.TubeAmmo[i] = ammo
+		end
+		if SERVER then
+			self:SetNWString("hg_tube_chamber", self.TubeAmmo[1] or "")
+		end
+	end
 
 	self.AdditionalPos = Vector(0,0,0)
 	self.AdditionalPos2 = Vector(0,0,0)
@@ -473,11 +483,33 @@ if SERVER then
 	end)
 end
 
-function SWEP:PrimaryShootPre()
+function SWEP:PrimaryShootPre(override)
+	if not self.UseTubeAmmo then return end
+
+	local owner = self:GetOwner()
+
+	if not override then
+		if not self:CanPrimaryAttack() then return end
+		if not self:CanUse() then return end
+		if CLIENT and owner != LocalPlayer() then return end
+		if not self.drawBullet or self:Clip1() == 0 then return end
+	end
+
+	self.TubeAmmo = self.TubeAmmo or {}
+	local chamber = self.TubeAmmo[1]
+	if (not chamber or chamber == "") and CLIENT then
+		chamber = self:GetNWString("hg_tube_chamber", "")
+	end
+
+	if not chamber or chamber == "" then return end
+
+	self._tubeSavedAmmo = self.RealAmmoType or self.Primary.Ammo
+	self._tubeOverrideActive = true
+	self.Primary.Ammo = chamber
 end
 
 function SWEP:Shoot(override)
-	self:PrimaryShootPre()
+	self:PrimaryShootPre(override)
 	local now = CurTime()
 
 	local owner = self:GetOwner()
@@ -509,6 +541,37 @@ function SWEP:Shoot(override)
 	
 	self:PrimaryShoot()
 	self:PrimaryShootPost()
+end
+
+function SWEP:TakePrimaryAmmo(num)
+	local before = self:Clip1()
+
+	if before > 0 then
+		self:SetClip1(math.max(before - num, 0))
+	else
+		local owner = self:GetOwner()
+		local primaryAmmo = self:GetPrimaryAmmoType()
+		if IsValid(owner) and owner.RemoveAmmo and primaryAmmo then
+			owner:RemoveAmmo(num, primaryAmmo)
+		end
+	end
+
+	if self.UseTubeAmmo and self.TubeAmmo then
+		local consumed = math.min(num, before)
+		for i = 1, consumed do
+			table.remove(self.TubeAmmo, 1)
+		end
+
+		if SERVER then
+			self:SetNWString("hg_tube_chamber", self.TubeAmmo[1] or "")
+		end
+	end
+
+	if self._tubeOverrideActive then
+		self.Primary.Ammo = self.RealAmmoType or self._tubeSavedAmmo or self.Primary.Ammo
+		self._tubeOverrideActive = nil
+		self._tubeSavedAmmo = nil
+	end
 end
 
 function SWEP:PrimaryAttack(broadcast)

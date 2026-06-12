@@ -291,6 +291,11 @@ MODE.Professions = {
 		SpawnFunction = function(ply)
 		end,
 	},
+	["armedsecurity"] = {
+		Name = "Armed Security",
+		SpawnFunction = function(ply)
+		end,
+	},
 	["courier"] = {
 		Name = "Courier",
 		SpawnFunction = function(ply)
@@ -356,6 +361,9 @@ MODE.RoleChooseRoundTypes = {
 			["security"] = {
 				Chance = 1,
 			},
+			["armedsecurity"] = {
+				Chance = 0.5,
+			},
 			["courier"] = {
 				Chance = 1,
 			},
@@ -397,6 +405,9 @@ MODE.RoleChooseRoundTypes = {
 			},
 			["security"] = {
 				Chance = 1,
+			},
+			["armedsecurity"] = {
+				Chance = 0.5,
 			},
 			["courier"] = {
 				Chance = 1,
