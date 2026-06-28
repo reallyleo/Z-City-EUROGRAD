@@ -40,11 +40,34 @@ concommand.Add("hg_guilt_menu",function(ply, cmd, args)
 end)
 
 local OpenMenu
+local forgiveMenuData = {}
+local forgivePromptAvailable = false
+local pendingForgiveOpen = false
+local colBlue = Color(0, 100, 255, 128)
+local colBlueText = Color(180, 220, 255, 255)
+
+local function HasForgiveTargets(tbl)
+    if not istable(tbl) then return false end
+
+    for ply, harm in pairs(tbl) do
+        if IsValid(ply) and harm and harm > 0.01 then
+            return true
+        end
+    end
+
+    return false
+end
 
 net.Receive("open_guilt_menu", function()
     local tbl = net.ReadTable()
-    
-    OpenMenu(tbl)
+    forgiveMenuData = tbl or {}
+    forgivePromptAvailable = HasForgiveTargets(forgiveMenuData)
+
+    if pendingForgiveOpen or IsValid(guiltMenu) then
+        local forceOpen = pendingForgiveOpen
+        pendingForgiveOpen = false
+        OpenMenu(forgiveMenuData, forceOpen)
+    end
 end)
 
 local colGray = Color(122,122,122,255)
@@ -64,18 +87,37 @@ local function harmdone(harm)
     end
 end
 
-local showstuff = CurTime() + 5
 hook.Add("Player_Death","karmacheck",function(ply)
     if ply != LocalPlayer() then return end
-    
-    showstuff = CurTime() + 5
+
+    forgiveMenuData = {}
+    forgivePromptAvailable = false
+    pendingForgiveOpen = false
+
+    timer.Simple(0, function()
+        if IsValid(LocalPlayer()) and not LocalPlayer():Alive() then
+            RunConsoleCommand("hg_guilt_menu")
+        end
+    end)
+end)
+
+hook.Add("Player Spawn", "guiltforgive_reset", function(ply)
+    if ply != LocalPlayer() then return end
+
+    forgiveMenuData = {}
+    forgivePromptAvailable = false
+    pendingForgiveOpen = false
+
+    if IsValid(guiltMenu) then
+        guiltMenu:Remove()
+        guiltMenu = nil
+    end
 end)
 
 local pressed
 hook.Add("HUDPaint","shownotification",function()
     if LocalPlayer():Alive() then return end
-
-    if showstuff > CurTime() then
+    if forgivePromptAvailable then
         local w, h = ScrW(), ScrH()
         local x, y = w / 2, h / 25 * 24
         local txt = "Press F to open forgiveness menu."
@@ -88,7 +130,7 @@ hook.Add("HUDPaint","shownotification",function()
 
     if input.IsKeyDown(KEY_F) and not gui.IsGameUIVisible() and not IsValid(vgui.GetKeyboardFocus()) then
         if not pressed then
-            showstuff = 0
+            pendingForgiveOpen = true
             RunConsoleCommand("hg_guilt_menu")
             pressed = true
         end
@@ -97,7 +139,16 @@ hook.Add("HUDPaint","shownotification",function()
     end
 end)
 
-OpenMenu = function(tbl)
+OpenMenu = function(tbl, forceOpen)
+    local hasTargets = HasForgiveTargets(tbl)
+
+    if not hasTargets and not forceOpen then
+        if IsValid(guiltMenu) then
+            guiltMenu:Close()
+        end
+        return
+    end
+
     if IsValid(guiltMenu) then
 		guiltMenu:Remove()
 		guiltMenu = nil
@@ -106,11 +157,14 @@ OpenMenu = function(tbl)
 	local sizeX,sizeY = ScrW() / 2 ,ScrH() / 3
 	local posX,posY = ScrW() / 2 - sizeX / 2,ScrH() / 2 - sizeY / 2
 
-	guiltMenu = vgui.Create("DScrollPanel")
+	guiltMenu = vgui.Create("ZFrame")
 	guiltMenu:SetPos(posX, posY)
 	guiltMenu:SetSize(sizeX, sizeY)
+    guiltMenu:SetTitle("")
     guiltMenu:MakePopup()
     guiltMenu:SetKeyboardInputEnabled(false)
+    guiltMenu:ShowCloseButton(false)
+    guiltMenu:SetColorBR(Color(0, 100, 255, 220))
 
     local button = vgui.Create("DButton", guiltMenu)
     button:SetPos(sizeX - ScreenScale(25),ScreenScale(5))
@@ -120,7 +174,7 @@ OpenMenu = function(tbl)
     function button:Paint(w,h)
         BlurBackground(self)
 
-        surface.SetDrawColor( 255, 0, 0, 128)
+        surface.SetDrawColor(colBlue)
         surface.DrawOutlinedRect( 0, 0, w, h, 2.5 )
 
         local x, y = w / 2, h / 2
@@ -134,23 +188,60 @@ OpenMenu = function(tbl)
 
     function button:DoClick()
         if IsValid(guiltMenu) then
-            guiltMenu:Remove()
+            guiltMenu:Close()
         end
     end
 
-	function guiltMenu:Paint( w, h )
-		BlurBackground(self)
+    local karmaPanel = vgui.Create("DPanel", guiltMenu)
+    karmaPanel:SetPos(sizeX - ScreenScale(85), ScreenScale(5))
+    karmaPanel:SetSize(ScreenScale(55), ScreenScale(10))
+    karmaPanel.Paint = function(self, w, h)
+        BlurBackground(self)
 
-		surface.SetDrawColor( 255, 0, 0, 128)
+		surface.SetDrawColor(colBlue)
         surface.DrawOutlinedRect( 0, 0, w, h, 2.5 )
-	end
+
+        local karma = IsValid(LocalPlayer()) and math.Round(LocalPlayer().Karma or 0, 1) or 0
+        local txt = "Karma: " .. karma
+        surface.SetFont("HomigradFont")
+        surface.SetTextColor(colBlueText.r, colBlueText.g, colBlueText.b, 255)
+        local tw, th = surface.GetTextSize(txt)
+        surface.SetTextPos(w / 2 - tw / 2, h / 2 - th / 2)
+        surface.DrawText(txt)
+    end
+
+    local list = vgui.Create("DScrollPanel", guiltMenu)
+    list:SetPos(ScreenScale(5), ScreenScale(20))
+    list:SetSize(sizeX - ScreenScale(10), sizeY - ScreenScale(25))
+
+    if not hasTargets then
+        local empty = vgui.Create("DPanel", list)
+        empty:Dock(TOP)
+        empty:DockMargin(ScreenScale(5), ScreenScale(20), ScreenScale(5), ScreenScale(5))
+        empty:SetTall(ScreenScaleH(22))
+        empty.Paint = function(self, w, h)
+            BlurBackground(self)
+            surface.SetDrawColor(colBlue)
+            surface.DrawOutlinedRect(0, 0, w, h, 2.5)
+
+            local txt = "No players are available to forgive right now."
+            surface.SetFont("HomigradFont")
+            surface.SetTextColor(colBlueText.r, colBlueText.g, colBlueText.b, 255)
+            local tw, th = surface.GetTextSize(txt)
+            surface.SetTextPos(w / 2 - tw / 2, h / 2 - th / 2)
+            surface.DrawText(txt)
+        end
+
+        list:AddItem(empty)
+        return
+    end
 
     local first = true
     for ply, harm in pairs(tbl) do
         if not IsValid(ply) then continue end
         if harm <= 0.01 then continue end
 
-        local but = vgui.Create("DButton", guiltMenu)
+        local but = vgui.Create("DButton", list)
 		but:SetSize(sizeX / 2,ScreenScaleH(22))
 		but:Dock(TOP)
         local mg = ScreenScale(5)
@@ -165,12 +256,12 @@ OpenMenu = function(tbl)
         but.Paint = function(self,w,h)
             BlurBackground(self)
             clr = LerpFT(0.1, clr, self:IsHovered() and 0 or 255)
-            surface.SetDrawColor( 255, 0, 0, 128)
+            surface.SetDrawColor(colBlue)
             surface.DrawOutlinedRect( 0, 0, w, h, 2.5 )
 
             local x, y = 0, h / 2
             surface.SetFont("HomigradFont")
-            surface.SetTextColor(clr,255,clr,255)
+            surface.SetTextColor(clr, clr, 255, 255)
             local w, h = surface.GetTextSize(txt)
             surface.SetTextPos(x + ScreenScale(5), y - h / 2)
             surface.DrawText(txt)
@@ -180,11 +271,10 @@ OpenMenu = function(tbl)
             net.Start("forgive_player")
             net.WriteEntity(ply)
             net.SendToServer()
-            --self:Remove()
             tbl[ply] = nil
             OpenMenu(tbl)
         end
 
-		guiltMenu:AddItem(but)
+		list:AddItem(but)
 	end
 end

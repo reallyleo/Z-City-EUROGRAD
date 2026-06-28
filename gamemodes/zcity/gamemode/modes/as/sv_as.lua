@@ -20,13 +20,36 @@ function MODE:GetLootTable()
 		{ 12, "weapon_bigconsumable" },
 		{ 8, "weapon_tourniquet" },
 		{ 8, "weapon_bandage_sh" },
+		{ 7, "weapon_bat" },
+		{ 6, "weapon_leadpipe" },
 		{ 7, "weapon_ducttape" },
+		{ 6, "weapon_pan" },
+		{ 6, "weapon_chair_leg" },
+		{ 5, "weapon_hg_crowbar" },
 		{ 6, "weapon_painkillers" },
+		{ 5, "weapon_hammer" },
+		{ 5, "weapon_table_leg" },
+		{ 4, "weapon_hatchet" },
 		{ 5, "weapon_bloodbag" },
 		{ 4, "weapon_walkie_talkie" },
+		{ 4, "weapon_gymnasticstick" },
+		{ 4, "weapon_hg_bottle" },
+		{ 4, "weapon_hg_mug" },
+		{ 3, "weapon_tomahawk" },
 		{ 3, "hg_flashlight" },
 		{ 3, "weapon_bigbandage_sh" },
+		{ 3, "weapon_brick" },
+		{ 3, "weapon_pocketknife" },
+		{ 2.5, "weapon_hg_bottlebroken" },
+		{ 2.5, "weapon_hg_glassshard" },
+		{ 2.5, "weapon_hg_tonfa" },
+		{ 2.5, "weapon_hg_extinguisher" },
+		{ 2, "weapon_hg_axe" },
+		{ 2, "weapon_hg_machete" },
+		{ 2, "weapon_hg_shovel" },
+		{ 2, "weapon_hg_glassshard_taped" },
 		{ 2, "weapon_medkit_sh" },
+		{ 1.5, "weapon_hg_sledgehammer" },
 		{ 1, "weapon_matches" },
 		{ 0.2, "weapon_morphine" },
 		{ 0.2, "weapon_mannitol" },
@@ -53,7 +76,7 @@ local shooterPlayerModels = {
 local shooterLoadouts = {
 	{
 		primary = "weapon_ar15",
-		primaryAttachments = { "holo15", "grip3", "laser4" },
+		primaryAttachments = { "holo2" },
 		primaryAmmoMul = 2,
 		secondary = "weapon_m9beretta",
 		secondaryAmmoMul = 2,
@@ -81,7 +104,7 @@ local shooterLoadouts = {
 	},
 	{
 		secondary = "weapon_glock26",
-		secondaryAttachments = { "ent_att_holo16", "ent_att_laser2" },
+		secondaryAttachments = { "holo16", "laser2" },
 		secondaryAmmoMul = 5,
 		items = { "weapon_hg_pipebomb_tpik", "weapon_bombvest", "weapon_bandage_sh", "weapon_melee" }
 	},
@@ -118,6 +141,7 @@ local function AS_GiveShooterLoadout(ply, loadout)
 
 	local primary = giveWeapon(loadout.primary, loadout.primaryAmmoMul, loadout.primaryAttachments)
 	giveWeapon(loadout.secondary, loadout.secondaryAmmoMul, loadout.secondaryAttachments)
+	ply:Give("hg_flashlight")
 
 	if loadout.items then
 		for _, item in ipairs(loadout.items) do

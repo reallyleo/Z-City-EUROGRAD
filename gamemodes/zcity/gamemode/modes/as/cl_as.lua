@@ -33,7 +33,7 @@ net.Receive("as_start", function()
 	zb.RemoveFade()
 
 	timer.Simple(3, function()
-		sound.PlayFile("sound/as/zbattle/activecoming.ogg", "mono noblock", function(station)
+		sound.PlayFile("sound/as/zbattle/theyouthinmyblood.mp3", "mono noblock", function(station)
 			if IsValid(station) then
 				station:Play()
 				song = station

@@ -257,6 +257,13 @@ local function applyProfessionLoadout(ply)
 		ply:Give(class)
 	end
 	
+	local function enableFlashlightInv()
+		local inv = ply:GetNetVar("Inventory", {})
+		inv["Weapons"] = inv["Weapons"] or {}
+		inv["Weapons"]["hg_flashlight"] = true
+		ply:SetNetVar("Inventory", inv)
+	end
+	
 	local function giveWeaponWithAmmo(class, mult)
 		if not class then return end
 		if not wepExists(class) then return end
@@ -339,6 +346,7 @@ local function applyProfessionLoadout(ply)
 		end
 	elseif ply.Profession == "security" then
 		ply.HMCD_ProfessionLoadoutGiven = true
+		enableFlashlightInv()
 
 		if math.random(1, 2) == 1 then
 			giveIfOk("weapon_taser")
@@ -352,6 +360,7 @@ local function applyProfessionLoadout(ply)
 		end
 	elseif ply.Profession == "armedsecurity" then
 		ply.HMCD_ProfessionLoadoutGiven = true
+		enableFlashlightInv()
 
 		if math.random(100) <= 60 then
 			giveIfOk("weapon_handcuffs")
@@ -383,6 +392,9 @@ local function applyProfessionLoadout(ply)
 		if math.random(100) <= 65 then
 			giveIfOk("weapon_walkie_talkie")
 		end
+		if math.random(100) <= 50 then
+			enableFlashlightInv()
+		end
 	elseif ply.Profession == "huntsman" then
 		ply.HMCD_ProfessionLoadoutGiven = true
 		if math.random(100) <= 80 then
@@ -391,10 +403,16 @@ local function applyProfessionLoadout(ply)
 		if math.random(100) <= 60 then
 			giveIfOk("weapon_walkie_talkie")
 		end
+		if math.random(100) <= 35 then
+			enableFlashlightInv()
+		end
 	elseif ply.Profession == "locksmith" then
 		ply.HMCD_ProfessionLoadoutGiven = true
 		if math.random(100) <= 65 then
 			giveIfOk("weapon_handcuffs_key")
+		end
+		if math.random(100) <= 40 then
+			enableFlashlightInv()
 		end
 		if math.random(100) <= 25 then
 			giveIfOk("weapon_walkie_talkie")
@@ -403,6 +421,9 @@ local function applyProfessionLoadout(ply)
 		ply.HMCD_ProfessionLoadoutGiven = true
 		if math.random(100) <= 70 then
 			hg.AddArmor(ply, "ent_armor_mask2")
+		end
+		if math.random(100) <= 55 then
+			enableFlashlightInv()
 		end
 		if math.random(100) <= 35 then
 			giveIfOk("weapon_walkie_talkie")
@@ -450,6 +471,9 @@ local function applyProfessionLoadout(ply)
 		end
 		if math.random(100) <= 60 then
 			giveIfOk("weapon_ducttape")
+		end
+		if math.random(100) <= 35 then
+			enableFlashlightInv()
 		end
 		if math.random(100) <= 20 then
 			giveIfOk("weapon_walkie_talkie")
