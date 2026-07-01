@@ -8,6 +8,7 @@ end
 local hg_firstperson_death = CreateClientConVar("hg_firstperson_death", "0", true, false, "Toggle first-person death camera view", 0, 1)
 local hg_font = CreateClientConVar("hg_font", "Bahnschrift", true, false, "change every text font to selected because ui customization is cool")
 local hg_attachment_draw_distance = CreateClientConVar("hg_attachment_draw_distance", 0, true, nil, "distance to draw attachments", 0, 4096)
+local hg_no_traitor = CreateClientConVar("hg_no_traitor", "0", true, true, "Opt out from becoming a traitor in homicide modes", 0, 1)
 
 xbars = 17
 ybars = 30
@@ -53,6 +54,7 @@ hg.settings:AddOpt("Gameplay","hg_showthoughts", "Show thoughts")
 hg.settings:AddOpt("Gameplay","hg_hints", "Show hints")
 hg.settings:AddOpt("Gameplay","hg_gary", "HG GARY")
 hg.settings:AddOpt("Gameplay","hg_deathfadeout", "Death fade out")
+hg.settings:AddOpt("Gameplay","hg_no_traitor", "Opt Out Of Traitor")
 --hg_gary
 --hg_deathfadeout
 if not game.IsDedicated() then

@@ -31,7 +31,7 @@ function MODE:Intermission()
 			continue
 		end
 		
-		ApplyAppearance(ply)
+		ApplyAppearance(ply, nil, nil, nil, true)
 		ply:SetupTeam(0)
 		table.insert(poses, ply:GetPos())
 	end

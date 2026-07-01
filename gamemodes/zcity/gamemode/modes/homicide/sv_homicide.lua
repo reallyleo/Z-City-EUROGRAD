@@ -281,6 +281,13 @@ util.AddNetworkString("HMCD(EndPlayersRoleSelection)")
 util.AddNetworkString("HMCD(SetSubRole)")
 util.AddNetworkString("hmcd_announce_traitor_lose")
 
+local function HMCD_CanBecomeTraitor(ply)
+	if not IsValid(ply) then return false end
+	if ply.isTraitor or ply:Team() == TEAM_SPECTATOR then return false end
+
+	return math.Round(ply:GetInfoNum("hg_no_traitor", 0)) ~= 1
+end
+
 MODE.Type = MODE.Type or "standard"
 MODE.Types = MODE.Types or {}
 MODE.Types.standard = {
@@ -722,8 +729,16 @@ function MODE:Intermission()
 	local allPlayers = player.GetAll()
 
 	local traitors_needed = 0
+	local traitor_candidates = 0
+	for _, ply in ipairs(allPlayers) do
+		if HMCD_CanBecomeTraitor(ply) then
+			traitor_candidates = traitor_candidates + 1
+		end
+	end
+
 	if player_count > 1 then
 		traitors_needed = math.min(4, math.min(player_count - 1, math.max(1, math.ceil(player_count / 5))))
+		traitors_needed = math.min(traitors_needed, traitor_candidates)
 	end
 
 	MODE.TraitorExpectedAmt = traitors_needed
@@ -740,7 +755,7 @@ function MODE:Intermission()
 	-- -- potom
 	
 	for i, ply in RandomPairs(allPlayers) do
-		if ply.isTraitor or ply:Team() == TEAM_SPECTATOR then continue end
+		if not HMCD_CanBecomeTraitor(ply) then continue end
 		if math.random(100) > (ply.Karma or 100) then continue end
 
 		if traitors_needed > 0 then
@@ -755,7 +770,7 @@ function MODE:Intermission()
 
 	//MODE.NextRoundMainTraitors = MODE.NextRoundMainTraitors or {}
 	for i, ply in RandomPairs(allPlayers) do
-		if ply.isTraitor or ply:Team() == TEAM_SPECTATOR then continue end
+		if not HMCD_CanBecomeTraitor(ply) then continue end
 		//if not MODE.NextRoundMainTraitors[ply:SteamID()] then continue end
 
 		if traitors_needed > 0 then
@@ -772,7 +787,7 @@ function MODE:Intermission()
 
 	if traitors_needed > 0 then
 		for i, ply in RandomPairs(allPlayers) do
-			if ply.isTraitor or ply:Team() == TEAM_SPECTATOR then continue end
+			if not HMCD_CanBecomeTraitor(ply) then continue end
 
 			if traitors_needed > 0 then
 				ply.isTraitor = true
