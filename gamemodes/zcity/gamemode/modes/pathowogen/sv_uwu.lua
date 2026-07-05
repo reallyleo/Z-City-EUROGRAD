@@ -183,29 +183,6 @@ function MODE:SpawnInterests()
 end
 
 
-function MODE:GetRandomSpawn(ply)
-	local spawnpoints
-
-	if zb.Points["Spawnpoint"] and zb.Points["Spawnpoint"].Points and #zb.Points["Spawnpoint"].Points > 0 then
-		spawnpoints = zb.Points["Spawnpoint"].Points
-	elseif zb.Points["RandomSpawns"] and zb.Points["RandomSpawns"].Points and #zb.Points["RandomSpawns"].Points > 0 then
-		spawnpoints = zb.Points["RandomSpawns"].Points
-	else
-		ply:Spawn()
-		return
-	end
-
-	local spawn, k = table.Random(spawnpoints)
-
-	if self.spawns[k] then
-		self:GetRandomSpawn(ply)
-		return
-	end
-
-	ply:SetPos(spawn.pos)
-	self.spawns[k] = true
-end
-
 function MODE:SetupFur(ply) // unused
 	ply:SetPlayerClass("furry", {instant = true})
 
@@ -361,7 +338,7 @@ function MODE:RoundStart()
 			self:SetupTraitor(ply)
 		end
 
-		self:GetRandomSpawn(ply)
+		ply:GetRandomSpawn()
 
 		table.insert(self.saved.Players, {
 			ply = ply,
@@ -384,7 +361,7 @@ function MODE:RoundStart()
 		ply:Give("weapon_hands_sh")
 		ply:SelectWeapon("weapon_hands_sh")
 
-		self:GetRandomSpawn(ply)
+		ply:GetRandomSpawn()
 
 		net.Start("zb_furfurbriefing")
 		net.Send(ply)

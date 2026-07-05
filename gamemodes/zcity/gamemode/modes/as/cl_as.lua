@@ -35,6 +35,7 @@ net.Receive("as_start", function()
 	timer.Simple(3, function()
 		sound.PlayFile("sound/as/zbattle/theyouthinmyblood.mp3", "mono noblock", function(station)
 			if IsValid(station) then
+				station:SetVolume(0.6)
 				station:Play()
 				song = station
 				songfade = 1
