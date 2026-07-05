@@ -7,7 +7,7 @@ end
 function CLASS.On(self)
     if CLIENT then return end
 
-    ApplyAppearance(self)
+    ApplyAppearance(self, nil, nil, nil, true)
 end
 
 CLASS.CanUseDefaultPhrase = true
@@ -17,4 +17,3 @@ CLASS.CanUseGestures = true
 function CLASS.Guilt(self, Victim)
     if CLIENT then return end
 end
-
