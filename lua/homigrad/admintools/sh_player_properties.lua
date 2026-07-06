@@ -664,7 +664,7 @@ local function Respawn(ply,body)
             hg.Fake( ply, body )
             hg.LightStunPlayer( ply )
 
-            timer.Simple(0.1,function()
+            timer.Simple(0.1, function()
                 if body.CurAppearance then
                     local color = body:GetNWVector("PlayerColor", vector_origin)
                     body.CurAppearance.AColor = Color( color[1] * 255,color[2] * 255,color[3] * 255 )
@@ -676,6 +676,11 @@ local function Respawn(ply,body)
                     local Appearance = ply.CurAppearance or hg.Appearance.GetRandomAppearance()
                     Appearance.AColthes = ""
                     ply:SetNetVar("Accessories", "")
+					local bgs = {}
+					for k, v in ipairs(body:GetBodyGroups()) do
+						table.insert(bgs, body:GetBodygroup( k - 1 ))
+					end
+					ply:SetBodyGroups(table.concat(bgs))
                     ply:SetModel(body:GetModel())
                     ply:SetSubMaterial()
                     ply:SetPlayerColor(ply:GetNWVector("PlayerColor", vector_origin))

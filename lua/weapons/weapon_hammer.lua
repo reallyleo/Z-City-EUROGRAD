@@ -21,9 +21,9 @@ SWEP.SuicideSound = "player/flesh/flesh_bullet_impact_03.wav"
 SWEP.CanSuicide = true
 SWEP.SuicideNoLH = true
 SWEP.SuicidePunchAng = Angle(5, -15, 0)
-SWEP.WorldModel = "models/weapons/w_jjife_t.mdl"
+SWEP.WorldModel = "models/weapons/zcity/w_hammer.mdl"
 SWEP.WorldModelReal = "models/weapons/tfa_nmrih/v_me_hatchet.mdl"
-SWEP.WorldModelExchange = "models/weapons/w_jjife_t.mdl"
+SWEP.WorldModelExchange = "models/weapons/zcity/w_hammer.mdl"
 SWEP.DontChangeDropped = false
 SWEP.ViewModel = ""
 SWEP.HoldType = "melee"
@@ -92,8 +92,8 @@ function SWEP:ThinkAdd()
 	if self:GetNetVar("AttackMode", 1) == 1 then
 		self.DamagePrimary = 15
 		self.DamageType = DMG_CLUB
-		self.weaponPos = Vector(0, 4, -3)
-		self.weaponAng = Angle(-5, -90, 0)
+		self.weaponPos = Vector(-2, 4.5, -11)
+		self.weaponAng = Angle(14, -90, 90)
 		self.PenetrationPrimary = 2
 		self.MaxPenLen = 1
 		self.PainMultiplier = 1.65
@@ -102,8 +102,8 @@ function SWEP:ThinkAdd()
 	else
 		self.DamagePrimary = 15
 		self.DamageType = DMG_SLASH
-		self.weaponPos = Vector(-0.5, -3, -6.5)
-		self.weaponAng = Angle(-55, 90, 0)
+		self.weaponPos = Vector(0.7, -1.8, -11.5)
+		self.weaponAng = Angle(-5, 90, 96)
 		self.PenetrationPrimary = 4
 		self.PainMultiplier = 1
 		self.MaxPenLen = 4

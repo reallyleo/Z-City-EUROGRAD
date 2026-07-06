@@ -58,17 +58,20 @@ hg.settings:AddOpt("Gameplay","hg_no_traitor", "Opt Out Of Traitor")
 --hg_gary
 --hg_deathfadeout
 if not game.IsDedicated() then
-	hg.settings:AddOpt("Serverside gameplay","hg_toughnpcs", "Tough npcs")
-	hg.settings:AddOpt("Serverside gameplay","hg_thirdperson", "Thirdperson (WIP)")
-	hg.settings:AddOpt("Serverside gameplay","hg_legacycam", "Legacy camera")
-	hg.settings:AddOpt("Serverside gameplay","hg_ragdollcombat", "Ragdoll combat mode")
-	hg.settings:AddOpt("Serverside gameplay","hg_movement_stamina_debuff", "Movement stamina debuff")
-	hg.settings:AddOpt("Serverside gameplay","hg_furcity", "Furcity")
-	hg.settings:AddOpt("Serverside gameplay","hg_appearance_access_for_all", "Appearance full access for all", nil, nil, "bool")
-	hg.settings:AddOpt("Serverside gameplay","hg_healanims", "Heal & food animations")
-	hg.settings:AddOpt("Serverside gameplay","hg_aimtoshoot", "DarkRP-like shoot system (aim to shoot)")
-	hg.settings:AddOpt("Serverside gameplay","hg_slings", "Sling system")
-    hg.settings:AddOpt("Serverside gameplay","homicide_traitoramount", "Homicide: Traitor Amount", nil, nil, "int")
+	hg.settings:AddOpt("Server-side settings","hg_toughnpcs", "Tough npcs")
+	hg.settings:AddOpt("Server-side settings","hg_thirdperson", "Thirdperson (WIP)")
+	hg.settings:AddOpt("Server-side settings","hg_legacycam", "Legacy camera")
+	hg.settings:AddOpt("Server-side settings","hg_ragdollcombat", "Ragdoll combat mode")
+	hg.settings:AddOpt("Server-side settings","hg_movement_stamina_debuff", "Movement stamina debuff")
+	hg.settings:AddOpt("Server-side settings","hg_furcity", "Furcity")
+	hg.settings:AddOpt("Server-side settings","hg_appearance_access_for_all", "Appearance full access for all", nil, nil, "bool")
+	hg.settings:AddOpt("Server-side settings","hg_healanims", "Heal & food animations")
+	hg.settings:AddOpt("Server-side settings","hg_aimtoshoot", "Toggle DarkRP-like shooting system (aim to shoot): 0 - disabled; 1 - hipfire only; 2 - aiming only", nil, nil, "int")
+	hg.settings:AddOpt("Server-side settings","hg_slings", "Sling system")
+	hg.settings:AddOpt("Server-side settings","hg_allow_gopro", "Allow GoPro-like first-person camera")
+	hg.settings:AddOpt("Server-side settings","hg_allow_gopro_pos", "Allow editing GoPro camera position")
+	hg.settings:AddOpt("Server-side settings","hg_ixanims", "Toggle Helix-like animations on NPC models for players. Experimental")
+    hg.settings:AddOpt("Server-side settings","homicide_traitoramount", "Homicide: Traitor Amount", nil, nil, "int")
 end
 --hg_appearance_access_for_all
 --hg_furcity
