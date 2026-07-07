@@ -18,13 +18,11 @@ if CLIENT then
 		CreateChat()
 	end)
 
+	local adminShow = ConVarExists("zb_admin_show_voicechat") and GetConVar("zb_admin_show_voicechat") or CreateClientConVar("zb_admin_show_voicechat","0",false,false,"Show voicechat panels for admins",0,1)
 	hook.Add("PlayerStartVoice","RemoveVoicePanles",function(ply)
 		if !IsValid(ply) then return end
 		local lply = LocalPlayer()
-		if IsValid(lply) and lply:IsAdmin() then
-			local adminShow = ConVarExists("zb_admin_show_voicechat") and GetConVar("zb_admin_show_voicechat")
-			if adminShow and adminShow:GetBool() then return end
-		end
+		if IsValid(lply) and lply:IsAdmin() and adminShow:GetBool() then return end
 
 		local other_alive = (ply:Alive() and LocalPlayer() != ply) or (ply.organism and (ply.organism.otrub or (ply.organism.brain and ply.organism.brain > 0.05)))
 
@@ -61,23 +59,13 @@ if CLIENT then
 		local text = net.ReadString()
 		local bWhisper = net.ReadBool()
 
-		local isPlayer = IsValid(speaker) and speaker:IsPlayer()
-		local isAlive = isPlayer and speaker:Alive() or false
+		speaker.ChatWhisper = bWhisper
 
-		if isPlayer then
-			speaker.ChatWhisper = bWhisper
-			CHAT_SPEAKER = speaker
-		else
-			CHAT_SPEAKER = nil
-		end
+		CHAT_SPEAKER = speaker
 
-		local supressed = hook.Run("OnPlayerChat", isPlayer and speaker or nil, text, false, isAlive, bWhisper)
+		local supressed = hook.Run("OnPlayerChat", speaker, text, false, speaker:Alive(), bWhisper)
 		if !supressed then
-			if isPlayer then
-				chat.AddText(speaker, ": ", text)
-			else
-				chat.AddText(text)
-			end
+			chat.AddText(speaker, ": ", text)
 		end
 
 		CHAT_SPEAKER = nil
