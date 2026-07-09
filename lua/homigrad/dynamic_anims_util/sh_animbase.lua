@@ -90,9 +90,35 @@ local function UpdatePlayerHoldType(client, weapon)
 	client.ixAnimHoldType = holdType
 end
 
+local function UpdateAnimationTable(client, vehicle)
+	if isPlayerAnim(client) then return end
+	client:SetIK(false)
+	local baseTable = hg.IXAnims[client.ixAnimModelClass] or {}
+	if IsValid(client) and IsValid(vehicle) then
+		local vehicleClass = vehicle:IsChair() and "chair" or vehicle:GetClass()
+		if baseTable.vehicle and baseTable.vehicle[vehicleClass] then
+			client.ixAnimTable = baseTable.vehicle[vehicleClass]
+		else
+			client.ixAnimTable = baseTable.normal[ACT_MP_CROUCH_IDLE]
+		end
+	else
+		client.ixAnimTable = baseTable[client.ixAnimHoldType]
+	end
+
+	client.ixAnimGlide = baseTable["glide"]
+end
+
+hook.Add("PlayerCanLegAttack", "PlayerCanLegAttack_ix", function(ply)
+	if not isPlayerAnim(ply) then
+		return false
+	end
+end)
+
 local animationFixOffset = Vector(16.5438, -0.1642, -20.5493)
 hook.Add("TranslateActivity", "TranslateActivity_ix", function(client, act)
 	if isPlayerAnim(client) then return end
+
+	UpdateAnimationTable(client)
 
 	local clientInfo = client:GetTable()
 	local modelClass = clientInfo.ixAnimModelClass or "player"
@@ -166,24 +192,6 @@ hook.Add("DoAnimationEvent", "DoAnimationEvent_ix", function(client, event, data
 	end
 	return ACT_INVALID
 end)
-
-local function UpdateAnimationTable(client, vehicle)
-	if isPlayerAnim(client) then return end
-	client:SetIK(false)
-	local baseTable = hg.IXAnims[client.ixAnimModelClass] or {}
-	if IsValid(client) and IsValid(vehicle) then
-		local vehicleClass = vehicle:IsChair() and "chair" or vehicle:GetClass()
-		if baseTable.vehicle and baseTable.vehicle[vehicleClass] then
-			client.ixAnimTable = baseTable.vehicle[vehicleClass]
-		else
-			client.ixAnimTable = baseTable.normal[ACT_MP_CROUCH_IDLE]
-		end
-	else
-		client.ixAnimTable = baseTable[client.ixAnimHoldType]
-	end
-
-	client.ixAnimGlide = baseTable["glide"]
-end
 
 hook.Add("PlayerSwitchWeapon", "PlayerSwitchWeapon_ix", function(client, oldWeapon, weapon)
 	if IsValid(client) and not isPlayerAnim(client) then
@@ -383,9 +391,9 @@ hg.IXAnims.citizen_female = {
 
 hg.IXAnims.metrocop = {
 	normal = {
-		[ACT_MP_STAND_IDLE] = {ACT_IDLE, ACT_IDLE_ANGRY_SMG1},
-		[ACT_MP_CROUCH_IDLE] = {ACT_COVER_PISTOL_LOW, ACT_COVER_SMG1_LOW},
-		[ACT_MP_WALK] = {ACT_WALK, ACT_WALK_AIM_RIFLE},
+		[ACT_MP_STAND_IDLE] = {ACT_IDLE, ACT_IDLE},
+		[ACT_MP_CROUCH_IDLE] = {ACT_COVER_PISTOL_LOW, ACT_COVER_PISTOL_LOW},
+		[ACT_MP_WALK] = {ACT_WALK, ACT_WALK},
 		[ACT_MP_CROUCHWALK] = {ACT_WALK_CROUCH, ACT_WALK_CROUCH},
 		[ACT_MP_RUN] = {ACT_RUN, ACT_RUN},
 		[ACT_LAND] = {ACT_RESET, ACT_RESET}
@@ -453,11 +461,11 @@ hg.IXAnims.metrocop = {
 
 hg.IXAnims.overwatch = {
 	normal = {
-		[ACT_MP_STAND_IDLE] = {2101, 2101},
+		[ACT_MP_STAND_IDLE] = {ACT_IDLE, ACT_IDLE},
 		[ACT_MP_CROUCH_IDLE] = {ACT_CROUCHIDLE, ACT_CROUCHIDLE},
-		[ACT_MP_WALK] = {2102, 2102},
+		[ACT_MP_WALK] = {ACT_WALK_AIM_SHOTGUN, ACT_WALK_AIM_SHOTGUN},
 		[ACT_MP_CROUCHWALK] = {ACT_WALK_CROUCH_RIFLE, ACT_WALK_CROUCH_RIFLE},
-		[ACT_MP_RUN] = {ACT_RUN_AIM_RIFLE, ACT_RUN_AIM_RIFLE},
+		[ACT_MP_RUN] = {ACT_RUN_RIFLE, ACT_RUN_RIFLE},
 		[ACT_LAND] = {ACT_RESET, ACT_RESET}
 	},
 	passive = {
@@ -469,17 +477,17 @@ hg.IXAnims.overwatch = {
 		[ACT_LAND] = {ACT_RESET, ACT_RESET}
 	},
 	pistol = {
-		[ACT_MP_STAND_IDLE] = {2101, ACT_IDLE_ANGRY_SMG1},
+		[ACT_MP_STAND_IDLE] = {2311, ACT_IDLE_ANGRY_SMG1},
 		[ACT_MP_CROUCH_IDLE] = {ACT_CROUCHIDLE, ACT_CROUCHIDLE},
-		[ACT_MP_WALK] = {2102, ACT_WALK_RIFLE},
+		[ACT_MP_WALK] = {2312, ACT_WALK_RIFLE},
 		[ACT_MP_CROUCHWALK] = {ACT_WALK_CROUCH_RIFLE, ACT_WALK_CROUCH_RIFLE},
 		[ACT_MP_RUN] = {ACT_RUN_AIM_RIFLE, ACT_RUN_AIM_RIFLE},
 		[ACT_LAND] = {ACT_RESET, ACT_RESET}
 	},
 	melee = {
-		[ACT_MP_STAND_IDLE] = {2101, ACT_IDLE_ANGRY_SMG1},
+		[ACT_MP_STAND_IDLE] = {2311, ACT_IDLE_ANGRY_SMG1},
 		[ACT_MP_CROUCH_IDLE] = {ACT_CROUCHIDLE, ACT_CROUCHIDLE},
-		[ACT_MP_WALK] = {2102, ACT_WALK_RIFLE},
+		[ACT_MP_WALK] = {2312, ACT_WALK_RIFLE},
 		[ACT_MP_CROUCHWALK] = {ACT_WALK_CROUCH_RIFLE, ACT_WALK_CROUCH_RIFLE},
 		[ACT_MP_RUN] = {ACT_RUN_AIM_RIFLE, ACT_RUN_AIM_RIFLE},
 		[ACT_LAND] = {ACT_RESET, ACT_RESET}
@@ -501,9 +509,9 @@ hg.IXAnims.overwatch = {
 		[ACT_LAND] = {ACT_RESET, ACT_RESET}
 	},
 	grenade = {
-		[ACT_MP_STAND_IDLE] = {2101, ACT_IDLE_ANGRY},
+		[ACT_MP_STAND_IDLE] = {2311, ACT_IDLE_ANGRY},
 		[ACT_MP_CROUCH_IDLE] = {ACT_CROUCHIDLE, ACT_CROUCHIDLE},
-		[ACT_MP_WALK] = {2102, ACT_WALK_RIFLE},
+		[ACT_MP_WALK] = {2312, ACT_WALK_RIFLE},
 		[ACT_MP_CROUCHWALK] = {ACT_WALK_CROUCH_RIFLE, ACT_WALK_CROUCH_RIFLE},
 		[ACT_MP_RUN] = {ACT_RUN_AIM_RIFLE, ACT_RUN_AIM_RIFLE},
 		[ACT_LAND] = {ACT_RESET, ACT_RESET}
@@ -635,6 +643,9 @@ function hg.IXAnims.GetModelClass(model)
 	local class = translations[model]
 	if not class and string.find(model, "/player") then return "player" end
 	class = class or "citizen_male"
-	if class == "citizen_male" and (string.find(model, "female") or string.find(model, "alyx") or string.find(model, "mossman")) then class = "citizen_female" end
+	if class == "citizen_male" and (string.find(model, "female") or string.find(model, "alyx") or string.find(model, "mossman")) then
+		class = "citizen_female"
+	end
+
 	return class
 end

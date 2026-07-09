@@ -103,12 +103,26 @@ if SERVER then
 	end)
 
 	concommand.Add("zb_getmodeschances", function(ply, cmd, args)
+<<<<<<< HEAD
 		if not IsValid(ply) or not ply:IsAdmin() then return end
+=======
+		if not ply:IsAdmin() then
+			return
+		end
+
+>>>>>>> 12c6f5d07828690c1c555d8eaec61ede28d6e6d6
 		ply:zChatPrint(util.TableToJSON(zb.ModesChances, true))
 	end)
 
 	concommand.Add("zb_setmodechance", function(ply, cmd, args)
+<<<<<<< HEAD
 		if not IsValid(ply) or not ply:IsAdmin() then return end
+=======
+		if not ply:IsAdmin() then
+			return
+		end
+
+>>>>>>> 12c6f5d07828690c1c555d8eaec61ede28d6e6d6
 		local mode = args[1]
 		local chance = tonumber(args[2])
 
@@ -118,7 +132,14 @@ if SERVER then
 	end)
 
 	concommand.Add("zb_savemodeschances", function(ply, cmd, args)
+<<<<<<< HEAD
 		if not IsValid(ply) or not ply:IsAdmin() then return end
+=======
+		if not ply:IsAdmin() then
+			return
+		end
+
+>>>>>>> 12c6f5d07828690c1c555d8eaec61ede28d6e6d6
 		file.Write(chancesfile, util.TableToJSON(zb.ModesChances or {}, true))
 	end)
 
