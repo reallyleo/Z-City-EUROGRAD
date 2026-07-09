@@ -93,17 +93,15 @@ SWEP.AttackRads2 = 0
 
 SWEP.SwingAng = -30
 SWEP.SwingAng2 = 0
-SWEP.NextChangeMode = 0
 
 function SWEP:Reload()
-	if self:GetOwner():KeyPressed(IN_RELOAD) and self.NextChangeMode < CurTime() then
-		if SERVER then
-			self:SetNetVar("extinguishermode", not self:GetNetVar("extinguishermode"))
-		end
-		--self:GetOwner():ChatPrint("Changed extinguishermode to "..(self:GetNetVar("extinguishermode") and "spray." or "attack."))
-		self:PlayAnim(self:GetNetVar("extinguishermode") and "equip" or "unequip",1,false,nil,false,true)
-		self.NextChangeMode = CurTime() + 1
-	end--anim,time,cycling,callback,reverse,sendtoclient
+    if SERVER then
+        if self:GetOwner():KeyPressed(IN_RELOAD) then
+            self:SetNetVar("extinguishermode", not self:GetNetVar("extinguishermode"))
+            --self:GetOwner():ChatPrint("Changed extinguishermode to "..(self:GetNetVar("extinguishermode") and "spray." or "attack."))
+            self:PlayAnim(self:GetNetVar("extinguishermode") and "equip" or "unequip",1,false,nil,false,true)
+        end--anim,time,cycling,callback,reverse,sendtoclient
+    end
 end
 
 hook.Add("OnNetVarSet", "AsdGuilt",function(index, key, var)
