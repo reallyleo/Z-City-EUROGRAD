@@ -72,12 +72,12 @@ function MODE:ShouldRoundEnd()
         
         return (aliveCount == eventerCount)
     elseif self.EndLogicType == 2 then
-        return (#zb:CheckAlive(true) <= 1)
+        return (#zb:CheckAlive(true) == 0)
     elseif self.EndLogicType == 3 then
         return false
     end
     
-    return (#zb:CheckAlive(true) <= 1) 
+    return (#zb:CheckAlive(true) == 0) 
 end
 
 function MODE:RoundStart()

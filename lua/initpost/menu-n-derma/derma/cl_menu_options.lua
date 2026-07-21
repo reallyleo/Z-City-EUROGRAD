@@ -53,7 +53,7 @@ hg.settings:AddOpt("Gameplay","hg_cheats", "Enable Cheats")
 hg.settings:AddOpt("Gameplay","hg_showthoughts", "Show thoughts")
 hg.settings:AddOpt("Gameplay","hg_hints", "Show hints")
 hg.settings:AddOpt("Gameplay","hg_gary", "Center weapon in fake")
-Hg.settings:AddOpt("Gameplay","hg_no_traitor", "Opt Out Of Traitor")
+hg.settings:AddOpt("Gameplay","hg_no_traitor", "Traitor Opt-Out")
 hg.settings:AddOpt("Gameplay","hg_deathfadeout", "Death fade out")
 --hg_gary
 --hg_deathfadeout
