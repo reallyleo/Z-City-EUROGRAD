@@ -323,7 +323,23 @@ MODE.Types.standard = {
 		ply:SetNetVar("Inventory",inv)
 	end,
 	GunManLoot = function(ply)
-		ply:Give((math.random(1, 2) == 1 and "weapon_px4beretta") or "weapon_m9beretta")
+            local concealed_firearms = {
+                    "weapon_px4beretta",
+                    "weapon_cz75",
+                    "weapon_hk_usp",
+                    "weapon_glock17",
+                    "weapon_m1911",
+                    "weapon_ruger",
+                    "weapon_colt9mm",
+                    "weapon_fn45",
+                    "weapon_p220",
+                    "weapon_p99",
+                    "weapon_vp9hk",
+                    "weapon_hkp7",
+                    "weapon_grach"
+            }
+
+            ply:Give(concealed_firearms[math.random(#concealed_firearms)])
 		ply.organism.recoilmul = 1
 	end,
 	PoliceTime = 220,
@@ -380,7 +396,12 @@ MODE.Types.wildwest = {
 		ply:Give("weapon_sogknife")
 		ply:Give("weapon_hg_type59_tpik")
 		ply:Give("weapon_adrenaline")
-		local revolver = ply:Give(math.random(2) == 2 and "weapon_winchester" or "weapon_revolver2")
+            local revolver = ply:Give(({
+                    "weapon_winchester",
+                    "weapon_yellowboy",
+                    "weapon_revolver2",
+                    "weapon_duplet"
+            })[math.random(4)])
 		ply:GiveAmmo(revolver:GetMaxClip1() * 1,revolver:GetPrimaryAmmoType(),true)
 		ply:Give("weapon_traitor_ied")
 		ply:Give("weapon_hg_molotov_tpik")
@@ -437,16 +458,18 @@ MODE.Types.wildwest = {
 			end)
 			if v.isTraitor then continue end
 			if v.isGunner then
-				v:Give("weapon_winchester")
+                            v:Give((math.random(2) == 1 and "weapon_winchester") or "weapon_yellowboy")
 				v:Give("weapon_revolver357")
 				v:Give("weapon_handcuffs")
 				v:Give("weapon_handcuffs_key")
 			else
 				local guns = {
 					"weapon_winchester",
+                                    "weapon_yellowboy",
 					"weapon_revolver2",
 					"weapon_doublebarrel",
-					"weapon_doublebarrel_short"
+                                    "weapon_doublebarrel_short",
+                                    "weapon_duplet"
 				}
 
 				local weapon = v:Give(guns[math.random(#guns)], true)
@@ -608,19 +631,24 @@ MODE.Types.soe = {
 		ply:SetNetVar("Inventory",inv)
 	end,
 	GunManLoot = function(ply)
-		local gun
-		if math.random(1, 2) == 1 then
-			gun = ply:Give((math.random(1, 2) == 1 and "weapon_remington870") or "weapon_m590a1")
-		else
-			gun = ply:Give((math.random(1, 2) == 1 and "weapon_kar98") or "weapon_sks")
-			if IsValid(gun) and hg and hg.AddAttachmentForce and hg.GiveAttachment then
-				if gun:GetClass() == "weapon_kar98" then
-					hg.AddAttachmentForce(ply, gun, "optic12")
-				elseif gun:GetClass() == "weapon_sks" then
-					hg.GiveAttachment(ply, "ent_att_holo6fur")
-				end
-			end
-		end
+            local hunting_weapons = {
+                    "weapon_remington870",
+                    "weapon_m590a1",
+                    "weapon_kar98",
+                    "weapon_mini14",
+                    "weapon_doublebarrel",
+                    "weapon_doublebarrel_short",
+                    "weapon_mini14ranchrifle",
+                    "weapon_moss500",
+                    "weapon_ithaca37",
+                    "weapon_maverickshot",
+                    "weapon_izh18"
+            }
+
+            local gun = ply:Give(hunting_weapons[math.random(#hunting_weapons)])
+            if IsValid(gun) and hg and hg.AddAttachmentForce and gun:GetClass() == "weapon_kar98" then
+                    hg.AddAttachmentForce(ply, gun, "optic12")
+            end
 		ply.organism.recoilmul = 1.0
 		local inv = ply:GetNetVar("Inventory")
 		inv["Weapons"]["hg_sling"] = true
