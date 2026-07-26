@@ -275,209 +275,97 @@ local function applyProfessionLoadout(ply)
 		return wep
 	end
 
-	if ply.Profession == "doctor" then
-		ply.HMCD_ProfessionLoadoutGiven = true
-		if math.random(100) > 15 then
-			local weaponRoll = math.random(100)
-			if weaponRoll <= 30 then
-				giveIfOk("weapon_thaumaturgic_arm")
-			elseif weaponRoll <= 60 then
-				if wepExists("weapon_scalpel") then
-					giveIfOk("weapon_scalpel")
-				else
-					giveIfOk("weapon_thaumaturgic_arm")
-				end
-			end
+    if ply.Profession == "doctor" then
+            ply.HMCD_ProfessionLoadoutGiven = true
 
-			if math.random(100) <= 60 then
-				local mainRoll = math.random(100)
-				if mainRoll <= 40 then
-					giveIfOk("weapon_bandage_sh")
-				elseif mainRoll <= 65 then
-					giveIfOk("weapon_bloodbag")
-				elseif mainRoll <= 80 then
-					giveIfOk("weapon_tourniquet")
-				elseif mainRoll <= 90 then
-					giveIfOk("weapon_bigbandage_sh")
-				elseif mainRoll <= 97 then
-					giveIfOk("weapon_medkit_sh")
-				else
-					giveIfOk("weapon_needle")
-				end
-			end
+            giveIfOk("weapon_thaumaturgic_arm")
+            giveIfOk("weapon_scalpel")
 
-			if math.random(100) <= 25 then
-				local extraRoll = math.random(100)
-				if extraRoll <= 45 then
-					giveIfOk("weapon_painkillers")
-				elseif extraRoll <= 65 then
-					giveIfOk("weapon_naloxone")
-				elseif extraRoll <= 80 then
-					giveIfOk("weapon_adrenaline")
-				elseif extraRoll <= 90 then
-					giveIfOk("weapon_mannitol")
-				else
-					giveIfOk("weapon_betablock")
-				end
-			end
-		end
+            giveIfOk("weapon_bandage_sh")
+            giveIfOk("weapon_bloodbag")
+            giveIfOk("weapon_tourniquet")
+            giveIfOk("weapon_bigbandage_sh")
+            giveIfOk("weapon_medkit_sh")
+            giveIfOk("weapon_needle")
+
+            giveIfOk("weapon_painkillers")
+            giveIfOk("weapon_naloxone")
+            giveIfOk("weapon_adrenaline")
+            giveIfOk("weapon_mannitol")
+            giveIfOk("weapon_betablock")
 	elseif ply.Profession == "paramedic" then
 		ply.HMCD_ProfessionLoadoutGiven = true
-		if math.random(100) > 25 then
-			if wepExists("weapon_scalpel") and math.random(100) <= 50 then
-				giveIfOk("weapon_scalpel")
-			end
 
-			if math.random(100) <= 50 then
-				giveIfOk("weapon_bandage_sh")
-			end
-			if math.random(100) <= 35 then
-				giveIfOk("weapon_tourniquet")
-			end
-			if math.random(100) <= 25 then
-				giveIfOk("weapon_painkillers")
-			end
-			if math.random(100) <= 10 then
-				giveIfOk("weapon_medkit_sh")
-			end
-			if math.random(100) <= 8 then
-				giveIfOk("weapon_needle")
-			end
-		end
+            giveIfOk("weapon_scalpel")
+            giveIfOk("weapon_bandage_sh")
+            giveIfOk("weapon_tourniquet")
+            giveIfOk("weapon_painkillers")
+            giveIfOk("weapon_medkit_sh")
+            giveIfOk("weapon_needle")
 	elseif ply.Profession == "security" then
 		ply.HMCD_ProfessionLoadoutGiven = true
 		enableFlashlightInv()
 
-		if math.random(1, 2) == 1 then
-			giveIfOk("weapon_taser")
-			local taser = ply:GetWeapon("weapon_taser")
-			if IsValid(taser) then
-				ply:GiveAmmo(taser:GetMaxClip1() * 2, taser:GetPrimaryAmmoType(), true)
-			end
-		else
-			giveIfOk("weapon_handcuffs")
-			giveIfOk("weapon_handcuffs_key")
-		end
+            giveWeaponWithAmmo("weapon_taser", 2)
+            giveIfOk("weapon_handcuffs")
+            giveIfOk("weapon_handcuffs_key")
 	elseif ply.Profession == "armedsecurity" then
 		ply.HMCD_ProfessionLoadoutGiven = true
 		enableFlashlightInv()
 
-		if math.random(100) <= 60 then
-			giveIfOk("weapon_handcuffs")
-			giveIfOk("weapon_handcuffs_key")
-		else
-			giveIfOk("weapon_taser")
-			local taser = ply:GetWeapon("weapon_taser")
-			if IsValid(taser) then
-				ply:GiveAmmo(taser:GetMaxClip1() * 1, taser:GetPrimaryAmmoType(), true)
-			end
-		end
-
-		if math.random(100) <= 45 then
-			local options = {}
-			if wepExists("weapon_mp5") then options[#options + 1] = "weapon_mp5" end
-			if #options > 0 then
-				giveIfOk(options[math.random(#options)])
-			end
-		end
-
-		if math.random(100) <= 25 then
-			giveIfOk("weapon_bandage_sh")
-		end
-		if math.random(100) <= 15 then
-			giveIfOk("weapon_tourniquet")
-		end
+            giveIfOk("weapon_handcuffs")
+            giveIfOk("weapon_handcuffs_key")
+            giveWeaponWithAmmo("weapon_taser", 1)
+            giveIfOk("weapon_mp5")
+            giveIfOk("weapon_bandage_sh")
+            giveIfOk("weapon_tourniquet")
 	elseif ply.Profession == "courier" then
 		ply.HMCD_ProfessionLoadoutGiven = true
-		if math.random(100) <= 65 then
-			giveIfOk("weapon_walkie_talkie")
-		end
-		if math.random(100) <= 50 then
-			enableFlashlightInv()
-		end
+            giveIfOk("weapon_walkie_talkie")
+            enableFlashlightInv()
 	elseif ply.Profession == "huntsman" then
 		ply.HMCD_ProfessionLoadoutGiven = true
-		if math.random(100) <= 80 then
-			giveIfOk("weapon_bayonet")
-		end
-		if math.random(100) <= 60 then
-			giveIfOk("weapon_walkie_talkie")
-		end
-		if math.random(100) <= 35 then
-			enableFlashlightInv()
-		end
+            giveIfOk("weapon_bayonet")
+            giveIfOk("weapon_walkie_talkie")
+            enableFlashlightInv()
 	elseif ply.Profession == "locksmith" then
 		ply.HMCD_ProfessionLoadoutGiven = true
-		if math.random(100) <= 65 then
-			giveIfOk("weapon_handcuffs_key")
-		end
-		if math.random(100) <= 40 then
-			enableFlashlightInv()
-		end
-		if math.random(100) <= 25 then
-			giveIfOk("weapon_walkie_talkie")
-		end
+            giveIfOk("weapon_handcuffs_key")
+            enableFlashlightInv()
+            giveIfOk("weapon_walkie_talkie")
 	elseif ply.Profession == "chemworker" then
 		ply.HMCD_ProfessionLoadoutGiven = true
-		if math.random(100) <= 70 then
-			hg.AddArmor(ply, "ent_armor_mask2")
-		end
-		if math.random(100) <= 55 then
-			enableFlashlightInv()
-		end
-		if math.random(100) <= 35 then
-			giveIfOk("weapon_walkie_talkie")
-		end
-		if math.random(100) <= 20 then
-			giveIfOk("weapon_naloxone")
-		end
+            hg.AddArmor(ply, "ent_armor_mask2")
+            enableFlashlightInv()
+            giveIfOk("weapon_walkie_talkie")
+            giveIfOk("weapon_naloxone")
 	elseif ply.Profession == "engineer" then
 		ply.HMCD_ProfessionLoadoutGiven = true
-		local gaveHammer = false
-		if math.random(100) <= 70 then
-			giveIfOk("weapon_hammer")
-			gaveHammer = ply:HasWeapon("weapon_hammer")
-		end
+            giveIfOk("weapon_hammer")
+            local gaveHammer = ply:HasWeapon("weapon_hammer")
 		if gaveHammer then
-			ply:GiveAmmo(math.random(8, 16), "Nails", true)
+                    ply:GiveAmmo(12, "Nails", true)
 		end
-		if math.random(100) <= 55 then
-			giveIfOk("weapon_ducttape")
-		end
-		if math.random(100) <= 30 then
-			giveIfOk("weapon_walkie_talkie")
-		end
+            giveIfOk("weapon_ducttape")
+            giveIfOk("weapon_walkie_talkie")
 	elseif ply.Profession == "cook" then
 		ply.HMCD_ProfessionLoadoutGiven = true
-		if math.random(100) <= 85 then
-			local options = {}
-			if wepExists("weapon_hg_cleaver") then options[#options + 1] = "weapon_hg_cleaver" end
-			if wepExists("weapon_kitchenknife") then options[#options + 1] = "weapon_kitchenknife" end
-			if wepExists("weapon_pan") then options[#options + 1] = "weapon_pan" end
-			if #options > 0 then
-				giveIfOk(options[math.random(#options)])
-			end
-		end
-		if math.random(100) <= 35 then
-			giveIfOk("weapon_bandage_sh")
-		end
-		if math.random(100) <= 25 then
-			giveIfOk("weapon_painkillers")
-		end
+
+            local options = {}
+            if wepExists("weapon_hg_cleaver") then options[#options + 1] = "weapon_hg_cleaver" end
+            if wepExists("weapon_kitchenknife") then options[#options + 1] = "weapon_kitchenknife" end
+            if wepExists("weapon_pan") then options[#options + 1] = "weapon_pan" end
+            if #options > 0 then
+                    giveIfOk(options[math.random(#options)])
+            end
+            giveIfOk("weapon_bandage_sh")
+            giveIfOk("weapon_painkillers")
 	elseif ply.Profession == "builder" then
 		ply.HMCD_ProfessionLoadoutGiven = true
-		if math.random(100) <= 70 then
-			giveIfOk("weapon_hammer")
-		end
-		if math.random(100) <= 60 then
-			giveIfOk("weapon_ducttape")
-		end
-		if math.random(100) <= 35 then
-			enableFlashlightInv()
-		end
-		if math.random(100) <= 20 then
-			giveIfOk("weapon_walkie_talkie")
-		end
+            giveIfOk("weapon_hammer")
+            giveIfOk("weapon_ducttape")
+            enableFlashlightInv()
+            giveIfOk("weapon_walkie_talkie")
 	end
 
 	if ply.Profession ~= "courier" then
