@@ -378,13 +378,24 @@ function MODE:GiveEquipment()
 
 		local loadoutPool = table.Copy(shooterLoadouts)
 		table.Shuffle(loadoutPool)
+                local incendiaryShooter = #shooters > 0 and shooters[math.random(#shooters)] or nil
+                local fireWeapons = {
+                        "weapon_hg_grenade_incendiary_tpik",
+                        "weapon_hg_molotov_tpik"
+                }
 
 		local shooterAssignments = {}
 		for i, ply in ipairs(shooters) do
 			local idx = ((i - 1) % #shooterPlayerModels) + 1
+                        local assignedLoadout = table.Copy(loadoutPool[i] or table.Random(shooterLoadouts) or {})
+                        if ply == incendiaryShooter then
+                                assignedLoadout.items = assignedLoadout.items or {}
+                                table.insert(assignedLoadout.items, table.Random(fireWeapons))
+                        end
+
 			shooterAssignments[ply] = {
 				model = shooterPlayerModels[idx],
-				loadout = loadoutPool[i] or table.Random(shooterLoadouts)
+                                loadout = assignedLoadout
 			}
 		end
 

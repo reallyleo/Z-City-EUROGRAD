@@ -135,6 +135,7 @@ AddItemToBUY( "Beta-Blocker", "Weapon", "weapon_betablock", 250, "Medical", {} )
 
 -- Explosive
 AddItemToBUY( "M67", "Weapon", "weapon_hg_grenade_tpik", 500, "Explosive", {} )
+AddItemToBUY( "M14", "Weapon", "weapon_hg_incendiarygrenade_tpik", 500, "Explosive", {} )
 AddItemToBUY( "RGD-5", "Weapon", "weapon_hg_rgd_tpik", 450, "Explosive", {} )
 AddItemToBUY( "Flashbang", "Weapon", "weapon_hg_flashbang_tpik", 250, "Explosive", {} )
 
