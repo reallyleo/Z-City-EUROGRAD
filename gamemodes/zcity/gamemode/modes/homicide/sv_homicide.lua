@@ -765,8 +765,16 @@ function MODE:Intermission()
 	end
 
 	if player_count > 1 then
-		traitors_needed = math.min(4, math.min(player_count - 1, math.max(1, math.ceil(player_count / 5))))
-		traitors_needed = math.min(traitors_needed, traitor_candidates)
+		if player_count <= 10 then
+			traitors_needed = 1
+		elseif player_count < 15 then
+			traitors_needed = 2
+		elseif player_count <= 20 then
+			traitors_needed = 3
+		else
+			traitors_needed = 3
+		end
+		traitors_needed = math.min(traitors_needed, player_count - 1, traitor_candidates)
 	end
 
 	MODE.TraitorExpectedAmt = traitors_needed
