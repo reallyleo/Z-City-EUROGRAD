@@ -42,8 +42,117 @@ ZC_ARMOR_SLOT_PELVIS = 14
     ZC_ARMOR_PROTCLASS_III_PLUS = 16
     ZC_ARMOR_PROTCLASS_IV = 22
 --//
+
+hg.EquipmentAppearanceSlots = {
+    ["face"] = ZC_ARMOR_SLOT_FACE,
+    ["head"] = ZC_ARMOR_SLOT_HEAD,
+    ["spine"] = ZC_ARMOR_SLOT_PELVIS,
+    ["torso"] = ZC_ARMOR_SLOT_TORSO
+}
+
 hg = hg or {}
 hg.organism = hg.organism or {}
+
+if CLIENT then
+    local function DrawFirstPersonHelmet(self, ply)
+        if ply:GetNetVar("headcrab") then return end
+        if not ply:Alive() then return end
+        if ply.organism and ply.organism.otrub then return end
+        if not self.Overlay then return end
+
+        local vecAdjust =   self.Overlay.PosAdjust
+        local fFov =        self.Overlay.Fov
+        local setMat =      self.Overlay.ModelMaterial
+
+        if not IsValid(ply.FirstPersonHelmetModel) then
+            ply.FirstPersonHelmetModel = ClientsideModel(self.Overlay.Model)
+            ply.FirstPersonHelmetModel:SetNoDraw(true)
+            return
+        end
+
+        if not IsValid(ply.FirstPersonHelmetModel2) then
+            ply.FirstPersonHelmetModel2 = ClientsideModel(self.Overlay.Model)
+            ply.FirstPersonHelmetModel2:SetNoDraw(true)
+            ply.FirstPersonHelmetModel2:SetModelScale(1.05)
+            return
+        end
+
+        local mdl = ply.FirstPersonHelmetModel
+        local mdl2 = ply.FirstPersonHelmetModel2
+
+        if mdl:GetModel() != self.Overlay.Model then
+            mdl:SetModel(self.Overlay.Model)
+        end
+
+        if mdl2:GetModel() != self.Overlay.Model then
+            mdl2:SetModel(self.Overlay.Model)
+        end
+        
+        if setMat and !mdl.matseted1 then
+            mdl:SetSubMaterial(0,setMat)
+            mdl.matseted = false
+            mdl.matseted1 = true
+            --print('huy')
+        elseif !setMat and !mdl.matseted then
+            --print("huy")
+            mdl:SetSubMaterial(0,nil)
+            mdl.matseted = true
+            mdl.matseted1 = false
+        end
+
+        local gp = false
+        local view = render.GetViewSetup()
+        cam.Start3D(view.origin,view.angles,view.fov + fFov,nil,nil,nil,nil,1,10)
+            --cam.IgnoreZ(true)
+            local viewpunching = GetViewPunchAngles() / 2
+            local ang = view.angles + viewpunching
+            mdl:SetRenderOrigin(view.origin + ang:Forward() * (vecAdjust.x + (gp and vecAdjust2.x or 0)) + ang:Right() * (vecAdjust.y + (gp and vecAdjust2.y or 0)) + ang:Up() * (vecAdjust.z + (gp and vecAdjust2.z or 0)))
+            mdl:SetRenderAngles(ang)
+            mdl2:SetRenderOrigin(view.origin + ang:Forward() * (vecAdjust.x + (gp and vecAdjust2.x or 0)) + ang:Right() * (vecAdjust.y + (gp and vecAdjust2.y or 0)) + ang:Up() * (vecAdjust.z + (gp and vecAdjust2.z or 0)))
+            mdl2:SetRenderAngles(ang)
+            mdl:SetParent(ply, ply:LookupBone("ValveBiped.Bip01_Head1"))
+            render.SetColorModulation(1,1,1)
+                render.SetStencilWriteMask( 0xFF )
+                render.SetStencilTestMask( 0xFF )
+                render.SetStencilReferenceValue( 0 )
+                render.SetStencilCompareFunction( STENCIL_ALWAYS )
+                render.SetStencilPassOperation( STENCIL_KEEP )
+                render.SetStencilFailOperation( STENCIL_KEEP )
+                render.SetStencilZFailOperation( STENCIL_KEEP )
+                render.ClearStencil()
+
+                -- Enable stencils
+                render.SetStencilEnable( true )
+                -- Set everything up everything draws to the stencil buffer instead of the screen
+                render.SetStencilReferenceValue( 1 )
+                render.SetStencilCompareFunction( STENCIL_NOTEQUAL )
+                render.SetStencilPassOperation( STENCIL_REPLACE )
+                render.SetBlend(0)
+                    mdl2:DrawModel()
+                render.SetBlend(1)
+                render.SetStencilCompareFunction( STENCIL_EQUAL )
+                mdl:DrawModel()
+                if not hg.ConVars.potatopc:GetBool() then
+                    DrawBokehDOF(8,0.9,15)
+                end
+                -- Let everything render normally again
+                render.SetStencilEnable( false )
+            render.SetColorModulation(1,1,1)
+            --cam.IgnoreZ(false)
+        cam.End3D()
+    end
+    
+    hg.DrawFirstPersonHelmet = DrawFirstPersonHelmet
+
+    hook.Add("Post Pre Post Processing", "renderEquipmentOverlay", function()
+        local Overlay = lply:GetEquipmentBySlot(ZC_ARMOR_SLOT_HEAD)
+        Overlay = IsValid(lply:GetEquipmentBySlot(ZC_ARMOR_SLOT_EYES)) and lply:GetEquipmentBySlot(ZC_ARMOR_SLOT_EYES) or Overlay
+        if !IsValid(Overlay) then return end
+        if lply:IsLocal() then return end
+        Overlay:DrawOverlay(lply)
+    end)
+end
+
 
 local function ArmorEffect(placement, armor, dmgInfo, org, hit, prot)
 	if prot < 0 then return end
@@ -123,8 +232,9 @@ local function protec(org, bone, dmg, dmgInfo, placement, boneindex, dir, hit, r
 	ArmorEffect(placement, plate, dmgInfo, org, hit, prot)
 
     local oldDurability = plate.Durability
-    if dmgInfo:IsDamageType(DMG_BULLET + DMG_SLASH) and (!org.oldPlate or org.oldPlate != plates[HitBoxName]) then
+    if dmgInfo:IsDamageType(DMG_BULLET + DMG_SLASH) and ( (!org.oldPlate or org.oldPlate != plates[HitBoxName]) or (!org.oldDmgInfo1 or org.oldDmgInfo1 != dmgInfo) ) then
         org.oldPlate = plates[HitBoxName]
+        org.oldDmgInfo1 = dmgInfo
         plate.Durability = math.max(plate.Durability - (penetration * plate.BalisticMaterial), 0)
     else
         org.oldPlate = nil
@@ -133,10 +243,10 @@ local function protec(org, bone, dmg, dmgInfo, placement, boneindex, dir, hit, r
     if developer:GetBool() and SERVER then
         local attacker = dmgInfo:GetAttacker()
         if IsValid(attacker) and attacker:IsPlayer() and attacker:IsAdmin() then
-            attacker:PrintMessage(HUD_PRINTCONSOLE, "\n--// Damage to armor on " .. org.owner:Nick())
+            attacker:PrintMessage(HUD_PRINTCONSOLE, "\n--// Damage to armor on " .. (org.owner:IsPlayer() and org.owner:Nick() or "Ragdoll[".. org.owner:EntIndex() .."]"))
             attacker:PrintMessage(HUD_PRINTCONSOLE, "--|| Armor: " .. armor.PrintName .. " | HitBox: " .. HitBoxName .. " | Plate: " .. plates[hitbox[9]])
             attacker:PrintMessage(HUD_PRINTCONSOLE, "--|| OldDur ".. oldDurability ..", Dur ".. plate.Durability ..", Prot ".. prot ..", Dmg ".. dmg ..", Pentr ".. penetration)
-            attacker:PrintMessage(HUD_PRINTCONSOLE, "--\\\\ Penetrated? " .. (prot < 1 and "Yes." or "No.") .. "\n\n" )
+            attacker:PrintMessage(HUD_PRINTCONSOLE, "--\\\\ Penetrated? " .. (prot < 0 and "Yes." or "No.") .. "\n\n" )
         end
     end
 
@@ -144,16 +254,16 @@ local function protec(org, bone, dmg, dmgInfo, placement, boneindex, dir, hit, r
         org.oldDmgInfo = dmgInfo
 		dmgInfo:ScaleDamage(penetratedDamageMul)
 		dmgInfo:SetDamageForce(dmgInfo:GetDamageForce() * penetratedDamageMul )
-		return 
+		return
 	end
     
     if not org.oldDmgInfo or org.oldDmgInfo != dmgInfo then
         dmgInfo:SetDamageType(DMG_CLUB)
-        dmgInfo:SetDamageForce(dmgInfo:GetDamageForce() * protectionDamageMul / 2)
+        dmgInfo:SetDamageForce(dmgInfo:GetDamageForce() * protectionDamageMul)
         dmgInfo:ScaleDamage(protectionDamageMul)
     end
 
-	return 0.9
+	return protectionDamageMul
 end
 
 hg.organism = hg.organism or {}
@@ -184,7 +294,7 @@ end)
 
 hook.Add("Initialize", "init-atts", loadArmor)
 
-hook.Add("InitPostEntity","RemoveMeLoadArmor",function()
+hook.Add("Think","RemoveMeLoadArmor",function()
     hook.Remove("Think","RemoveMeLoadArmor")
     if !HG_BaseHitBoxSetLoaded then return end 
     loadArmor()

@@ -274,7 +274,7 @@ end
     hook.Add("ItemsTransfered", "TransferEquipment", function(ply, ragdoll)
         local Equipment = ply:GetNetVar("zc_equipment", {})
         local EquipmentBySlot = ply:GetNetVar("zc_equipment_slot", {})
-        if #Equipment < 1 then return end
+        if Equipment and #Equipment < 1 then return end
 
         for i = 1, #Equipment do
             local Equip = Entity(Equipment[i])
@@ -289,11 +289,25 @@ end
     end)
 --//
 
+--\\ Die items
+    hook.Add("ItemsRemoved", "TransferEquipment", function(ply, ragdoll)
+        local Equipment = ply:GetNetVar("zc_equipment", {})
+        local EquipmentBySlot = ply:GetNetVar("zc_equipment_slot", {})
+        if Equipment and #Equipment < 1 then return end
+
+        for i = 1, #Equipment do
+            local Equip = Entity(Equipment[i])
+            if !IsValid(Equip) then continue end
+            Equip:Remove()
+        end
+    end)
+--//
+
 --\\
     function entMeta:GetEquipmentBySlot(slot)
         local EquipmentBySlot = self:GetNetVar("zc_equipment_slot",{})
 
-        return Entity(EquipmentBySlot[slot])
+        return EquipmentBySlot[slot] and Entity(EquipmentBySlot[slot]) or nil
     end
 
     function entMeta:GetEquipments(slot)
@@ -330,18 +344,19 @@ end
                     local Equip = Entity(Equipment[i])
 
                     for slot, _ in pairs(Equip.SlotOccupation) do
+                        --Equip.IconInv = isstring(Equip.IconOverride) and Material(Equip.IconOverride) or Equip.IconInv or nil -- soon
                         commands[i] = {
                             [1] = function()
                                 RunConsoleCommand("hg_drop_new_equipment", i)
                                 return 0
                             end,
-                            [2] = "Drop:" .. " " .. Equip.PrintName
+                            [2] = "Drop:" .. " " .. Equip.PrintName,
                         }
                     end
                 end
                 hg.CreateRadialMenu(commands)
                 return -1
-            end, "Drop Equipment"}
+            end, "Drop\nEquipment"}
             hg.radialOptions[#hg.radialOptions + 1] = tbl
         end
     end)
