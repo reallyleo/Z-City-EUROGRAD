@@ -274,13 +274,13 @@ local function protec(org, bone, dmg, dmgInfo, placement, boneindex, dir, hit, r
 		return
 	end
     
-    if not org.oldDmgInfo or (org.oldDmgInfo != dmgInfo) or !armor.nodamagetypeChange then
+    if not org.oldDmgInfo or (org.oldDmgInfo != dmgInfo) or armor.SideLinks and !armor.nodamagetypeChange then
         dmgInfo:SetDamageType(DMG_CLUB)
         dmgInfo:SetDamageForce(dmgInfo:GetDamageForce() * protectionDamageMul)
         dmgInfo:ScaleDamage(protectionDamageMul)
     end
 
-	return protectionDamageMul
+	return 1
 end
 
 hg.organism = hg.organism or {}
