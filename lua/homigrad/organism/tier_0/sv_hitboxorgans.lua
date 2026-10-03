@@ -29,13 +29,15 @@ function hg.organism.Trace(pos, dir, size, maxpen, boxs, center, endDis, organs,
 	dir:Normalize()
 	dir = dir * stepDis
 
-	tracePos:Set(pos - dir * 5)
-	distance = distance + (dir * 5):Length()
-	
+	tracePos:Set(pos - dir * 10)
+
 	local distancereal = distance
+
+	distance = distance + (dir * 10):Length()
 	
 	local passing = 0
 	local maxtries = 20
+	local oldIHit 
 	while(passing < distance and maxtries > 0)do
 		maxtries = maxtries - 1
 
@@ -55,7 +57,7 @@ function hg.organism.Trace(pos, dir, size, maxpen, boxs, center, endDis, organs,
 			if not organs[box[6]] then continue end
 			
 			local startpos = tracePos
-			local endpos = dir * 105
+			local endpos = dir * 100
 
 			local hit_, normal_, frac_ = util_IntersectRayWithOBB(startpos, endpos, box[1], box[2], box[3], box[4])
 			
@@ -101,8 +103,9 @@ function hg.organism.Trace(pos, dir, size, maxpen, boxs, center, endDis, organs,
 					end
 				end
 			end*/
-			
-			dirSub = funcInput(box, tracePos, ricocheted, ...)
+			local box1 = table.Copy(box)
+			box1[8] = boxs[oldIHit]
+			dirSub = funcInput(box1, tracePos, ricocheted, ...)
 
 			if dirSub then
 				distance = distance - dirSub * distance
@@ -111,7 +114,7 @@ function hg.organism.Trace(pos, dir, size, maxpen, boxs, center, endDis, organs,
 			//print(organs[box[6]][box[7]][1], distance, dirSub, passing, passing > distance)
 		end
 		
-		passing = passing + 105 * frac
+		passing = passing + 100 * frac
 
 		if not inBody and iHit then
 			inBody = true
@@ -130,6 +133,7 @@ function hg.organism.Trace(pos, dir, size, maxpen, boxs, center, endDis, organs,
 		end
 		
 		tracePoses[#tracePoses + 1] = Vector(tracePos[1], tracePos[2], tracePos[3])
+		oldIHit = iHit
 		if passing >= distance or (tracePos - center):LengthSqr() > endDisSqr then break end
 	end
 	
@@ -143,7 +147,7 @@ function hg.organism.Trace(pos, dir, size, maxpen, boxs, center, endDis, organs,
 
 	dir:Normalize()
 
-	return tracePos, hitBoxs, inputHole, outputHole, dir, distance, tracePoses
+	return tracePos, hitBoxs, inputHole, outputHole, dir, distancereal, tracePoses
 end
 
 function hg.organism.BlastTrace(pos, size, dmg, boxs, organs, funcInput, ...)

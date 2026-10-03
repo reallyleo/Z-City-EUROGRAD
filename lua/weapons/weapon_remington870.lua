@@ -92,7 +92,7 @@ SWEP.availableAttachments = {
 }
 
 --models/weapons/tfa_ins2/upgrades/att_suppressor_12ga.mdl
-SWEP.Primary.Wait = 0.25
+SWEP.Primary.Wait = 0.15
 SWEP.NumBullet = 8
 SWEP.AnimShootMul = 3
 SWEP.AnimShootHandMul = 10
@@ -107,7 +107,7 @@ SWEP.Penetration = 7
 SWEP.WorldPos = Vector(0.2, -0.5, 1.2)
 SWEP.WorldAng = Angle(0.7, -0.1, 0)
 SWEP.UseCustomWorldModel = true
-SWEP.attPos = Vector(0.4, -0.15, 0)
+SWEP.attPos = Vector(8.3, -0.15, 0)
 SWEP.attAng = Angle(0, 0.2, 0)
 SWEP.lengthSub = 20
 
@@ -121,7 +121,7 @@ SWEP.AnimList = {
 	["idle"] = "idle",
 	["reload"] = "base_reload",
 	["reload_empty"] = "base_reload_empty",
-	["finish_empty"] = "sgreload_finish_empty",
+	["finish_empty"] = "sgreload_finish",
 	["finish"] = "sgreload_finish",
 	["insert"] = "sgreload_insert",
 	["start"] = "sgreload_start",
@@ -271,7 +271,7 @@ local function reloadFunc(self)
 		self:GetWM():ManipulateBoneScale(self.MagIndex, vector_full)
 	end
 	
-	self:PlayAnim(self.AnimList["insert"] or "sgreload_insert", 1, false, function() 
+	self:PlayAnim(self.AnimList["insert"] or "sgreload_insert", {0.85,0,0.05}, false, function() 
 		self:InsertAmmo(1) 
 		if self.MagIndex then
 			self:GetWM():ManipulateBoneScale(self.MagIndex, vector_origin)
@@ -286,8 +286,12 @@ local function reloadFunc(self)
 		end
 
 		if !self.drawBullet then
-			cock(self,1)
-			self:PlayAnim(self.AnimList["finish_empty"] or "sgreload_finish_empty", 1, false, function(self) self:SetNetVar("shootgunReload", 0) end, false, true) 
+			self:PlayAnim(self.AnimList["finish_empty"] or "sgreload_finish_empty", {0.8,0,0.3}, false, 
+			function(self) 
+				cock(self,1)
+				self:SetNetVar("shootgunReload",CurTime() + 0.5)
+				self:PlayAnim(self.AnimList["cycle"] or "cycle", 1, false, nil, false, true)
+			end, false, true) 
 		else
 			self:PlayAnim(self.AnimList["finish"] or "sgreload_finish", 1, false, function(self) self:SetNetVar("shootgunReload", 0) end, false, true) 
 		end
@@ -318,7 +322,7 @@ function SWEP:Reload(time)
 	if SERVER then
 		self:SetNetVar("shootgunReload", CurTime() + 1.1)
 
-		self:PlayAnim(self.AnimList["start"] or "sgreload_start",1,false,function() 
+		self:PlayAnim(self.AnimList["start"] or "sgreload_start",{1,0,0.2},false,function() 
 			reloadFunc(self)
 		end,
 		false, true)
